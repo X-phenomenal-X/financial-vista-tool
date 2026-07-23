@@ -1,0 +1,67 @@
+import { supabase } from "@/integrations/supabase/client";
+
+// Seed Abhi's real financial snapshot. Runs ONCE per owner (guard: profiles.seeded).
+// Do not seed for non-owner accounts; this data is personal.
+export async function seedOwnerData(userId: string) {
+  const accounts = [
+    { user_id: userId, name: "Chequing", kind: "chequing", balance: 826.43, sort_order: 1 },
+    { user_id: userId, name: "Savings", kind: "savings", balance: 3.15, sort_order: 2 },
+    { user_id: userId, name: "Money Master", kind: "money_master", balance: 100.02, sort_order: 3 },
+    { user_id: userId, name: "Work RRSP", kind: "rrsp", balance: 4002.91, sort_order: 4 },
+    { user_id: userId, name: "Employer DPSP", kind: "dpsp", balance: 4002.91, sort_order: 5 },
+  ];
+
+  const debts = [
+    { user_id: userId, name: "PC Mastercard", kind: "credit_card", balance: 1540.17, pending: -70, apr: 26.99, credit_limit: 1500, minimum_payment: 33.88, due_date: "2026-08-04", status: "active", priority: 1, notes: "Over limit and highest APR — pay first once RBC past-due is cleared." },
+    { user_id: userId, name: "RBC Visa", kind: "credit_card", balance: 2530.70, pending: 0, apr: 25.99, credit_limit: 2500, minimum_payment: 132, due_date: "2026-08-14", status: "past_due", priority: 2, notes: "Purchase APR 25.99% / cash advance 27.99%. PAST DUE — resolve first to stop late fees." },
+    { user_id: userId, name: "Scene+ Visa", kind: "credit_card", balance: 2928.79, pending: 0, apr: 21.99, credit_limit: 3000, minimum_payment: 75.75, due_date: "2026-08-13", status: "active", priority: 3, notes: "97% utilization — bring under before next statement." },
+    { user_id: userId, name: "Passport Visa", kind: "credit_card", balance: 1538.46, pending: 70.56, apr: 20.99, credit_limit: 7500, minimum_payment: 50, minimum_estimated: true, due_date: "2026-08-12", status: "active", priority: 4, notes: "Minimum is a temporary estimate — update when confirmed." },
+    { user_id: userId, name: "Affirm", kind: "bnpl", balance: 254.26, pending: 0, apr: 0, minimum_payment: 84.75, status: "past_due", priority: 5, notes: "$84.75 overdue." },
+    { user_id: userId, name: "Afterpay", kind: "bnpl", balance: 0, pending: 0, apr: 0, minimum_payment: 0, status: "cleared", priority: 6, notes: "Fully cleared." },
+    { user_id: userId, name: "Car Loan", kind: "car_loan", balance: 24194.90, pending: 0, apr: 3.99, minimum_payment: 313.27, status: "active", priority: 10, notes: "Biweekly $313.27. Keep on schedule — do not prioritize over high-interest cards." },
+  ];
+
+  const budget = [
+    { user_id: userId, name: "Take-home income", planned: 5200, kind: "income", sort_order: 0 },
+    { user_id: userId, name: "Rent (your share)", planned: 460, kind: "expense", sort_order: 1 },
+    { user_id: userId, name: "Car payment", planned: 678, kind: "debt", sort_order: 2 },
+    { user_id: userId, name: "Car insurance", planned: 465.51, kind: "expense", sort_order: 3 },
+    { user_id: userId, name: "Phone", planned: 131.24, kind: "expense", sort_order: 4 },
+    { user_id: userId, name: "Utilities", planned: 150, kind: "expense", sort_order: 5 },
+    { user_id: userId, name: "Gas", planned: 400, kind: "expense", sort_order: 6 },
+    { user_id: userId, name: "Groceries", planned: 350, kind: "expense", sort_order: 7 },
+    { user_id: userId, name: "Dining & coffee", planned: 250, kind: "expense", sort_order: 8 },
+    { user_id: userId, name: "Subscriptions", planned: 75, kind: "expense", sort_order: 9 },
+    { user_id: userId, name: "Shopping / gaming", planned: 0, kind: "expense", sort_order: 10 },
+    { user_id: userId, name: "Entertainment", planned: 0, kind: "expense", sort_order: 11 },
+    { user_id: userId, name: "India RD", planned: 0, kind: "savings", sort_order: 12 },
+    { user_id: userId, name: "Car maintenance fund", planned: 100, kind: "savings", sort_order: 13 },
+    { user_id: userId, name: "Emergency savings", planned: 0, kind: "savings", sort_order: 14 },
+    { user_id: userId, name: "Credit-card payments", planned: 1800, kind: "debt", sort_order: 15 },
+    { user_id: userId, name: "Roommate rent in", planned: 2140, kind: "transfer", sort_order: 20 },
+    { user_id: userId, name: "Full rent out", planned: 2600, kind: "transfer", sort_order: 21 },
+  ];
+
+  const goals = [
+    { user_id: userId, name: "Starter emergency fund", kind: "emergency", target_amount: 1000, current_amount: 929.60, active: true, sort_order: 1, notes: "First milestone. One number to protect: $1,000." },
+    { user_id: userId, name: "Emergency fund — $3,000", kind: "emergency", target_amount: 3000, current_amount: 929.60, active: true, sort_order: 2, notes: null },
+    { user_id: userId, name: "3 months essential expenses", kind: "emergency", target_amount: 9000, current_amount: 929.60, active: true, sort_order: 3, notes: "Rent + car + insurance + phone + utilities + gas + groceries." },
+    { user_id: userId, name: "Pay off all credit cards", kind: "debt_payoff", target_amount: 8547.68, current_amount: 0, active: true, sort_order: 4, notes: "PC + RBC + Scene+ + Passport combined." },
+    { user_id: userId, name: "Workplace retirement (RRSP + DPSP)", kind: "retirement", target_amount: 100000, current_amount: 8005.82, active: true, sort_order: 5, notes: "Keep matched contributions running." },
+    { user_id: userId, name: "FHSA (first-home savings)", kind: "fhsa", target_amount: 8000, current_amount: 0, active: false, sort_order: 6, notes: "Not active yet — no FHSA opened; unsure about buying a home." },
+  ];
+
+  const reminders = [
+    { user_id: userId, title: "Verify card payments", notes: "Confirm PC + RBC + Scene+ + Passport payments posted.", due_at: new Date("2026-08-03T09:00:00-04:00").toISOString(), recurrence: "once", kind: "debt_due" },
+    { user_id: userId, title: "Payday routine", notes: "Update balances, confirm minimums, hold $500 buffer, deploy toward highest-priority debt.", due_at: new Date("2026-07-30T09:00:00-04:00").toISOString(), recurrence: "biweekly", kind: "payday" },
+    { user_id: userId, title: "Monthly budget review", notes: "Check planned vs actual across all categories.", due_at: new Date("2026-08-01T10:00:00-04:00").toISOString(), recurrence: "monthly", kind: "budget_review" },
+    { user_id: userId, title: "Upload latest statements", notes: "Bank, cards, pay stubs, retirement.", due_at: new Date("2026-08-05T18:00:00-04:00").toISOString(), recurrence: "monthly", kind: "statement" },
+  ];
+
+  await supabase.from("accounts").insert(accounts);
+  await supabase.from("debts").insert(debts);
+  await supabase.from("budget_categories").insert(budget);
+  await supabase.from("goals").insert(goals);
+  await supabase.from("reminders").insert(reminders);
+  await supabase.from("profiles").update({ seeded: true }).eq("user_id", userId);
+}
