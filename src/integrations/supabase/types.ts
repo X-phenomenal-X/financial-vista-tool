@@ -47,6 +47,39 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json
+          entity: string
+          entity_id: string | null
+          id: string
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json
+          entity: string
+          entity_id?: string | null
+          id?: string
+          summary: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          summary?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       budget_categories: {
         Row: {
           created_at: string
@@ -179,6 +212,215 @@ export type Database = {
         }
         Relationships: []
       }
+      import_items: {
+        Row: {
+          amount: number
+          category: string | null
+          confidence: number
+          created_at: string
+          decision: string
+          description: string | null
+          duplicate_of: string | null
+          id: string
+          import_id: string
+          item_type: string
+          occurred_on: string | null
+          raw: string | null
+          tx_type: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          category?: string | null
+          confidence?: number
+          created_at?: string
+          decision?: string
+          description?: string | null
+          duplicate_of?: string | null
+          id?: string
+          import_id: string
+          item_type?: string
+          occurred_on?: string | null
+          raw?: string | null
+          tx_type?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          confidence?: number
+          created_at?: string
+          decision?: string
+          description?: string | null
+          duplicate_of?: string | null
+          id?: string
+          import_id?: string
+          item_type?: string
+          occurred_on?: string | null
+          raw?: string | null
+          tx_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_items_duplicate_of_fkey"
+            columns: ["duplicate_of"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_items_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "statement_imports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_log: {
+        Row: {
+          body: string | null
+          channel: string
+          created_at: string
+          id: string
+          read: boolean
+          reminder_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          reminder_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          reminder_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_reminder_id_fkey"
+            columns: ["reminder_id"]
+            isOneToOne: false
+            referencedRelation: "reminders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payday_plan_items: {
+        Row: {
+          actual_amount: number | null
+          amount: number
+          created_at: string
+          debt_id: string | null
+          id: string
+          kind: string
+          label: string
+          paid: boolean
+          plan_id: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          actual_amount?: number | null
+          amount?: number
+          created_at?: string
+          debt_id?: string | null
+          id?: string
+          kind?: string
+          label: string
+          paid?: boolean
+          plan_id: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          actual_amount?: number | null
+          amount?: number
+          created_at?: string
+          debt_id?: string | null
+          id?: string
+          kind?: string
+          label?: string
+          paid?: boolean
+          plan_id?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payday_plan_items_debt_id_fkey"
+            columns: ["debt_id"]
+            isOneToOne: false
+            referencedRelation: "debts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payday_plan_items_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "payday_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payday_plans: {
+        Row: {
+          buffer: number
+          created_at: string
+          expected_pay: number
+          extra_debt_payment: number
+          id: string
+          notes: string | null
+          pay_date: string
+          spending_allowance: number
+          starting_cash: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buffer?: number
+          created_at?: string
+          expected_pay?: number
+          extra_debt_payment?: number
+          id?: string
+          notes?: string | null
+          pay_date: string
+          spending_allowance?: number
+          starting_cash?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buffer?: number
+          created_at?: string
+          expected_pay?: number
+          extra_debt_payment?: number
+          id?: string
+          notes?: string | null
+          pay_date?: string
+          spending_allowance?: number
+          starting_cash?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -225,8 +467,12 @@ export type Database = {
           due_at: string
           id: string
           kind: string
+          last_fired_at: string | null
           notes: string | null
+          notify_browser: boolean
+          paused: boolean
           recurrence: string
+          snoozed_until: string | null
           title: string
           updated_at: string
           user_id: string
@@ -237,8 +483,12 @@ export type Database = {
           due_at: string
           id?: string
           kind?: string
+          last_fired_at?: string | null
           notes?: string | null
+          notify_browser?: boolean
+          paused?: boolean
           recurrence?: string
+          snoozed_until?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -249,13 +499,89 @@ export type Database = {
           due_at?: string
           id?: string
           kind?: string
+          last_fired_at?: string | null
           notes?: string | null
+          notify_browser?: boolean
+          paused?: boolean
           recurrence?: string
+          snoozed_until?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      statement_imports: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          debt_id: string | null
+          detected: Json
+          doc_kind: string
+          file_name: string
+          file_size: number
+          file_type: string
+          id: string
+          items_accepted: number
+          items_total: number
+          statement_end: string | null
+          statement_start: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          debt_id?: string | null
+          detected?: Json
+          doc_kind?: string
+          file_name: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          items_accepted?: number
+          items_total?: number
+          statement_end?: string | null
+          statement_start?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          debt_id?: string | null
+          detected?: Json
+          doc_kind?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          items_accepted?: number
+          items_total?: number
+          statement_end?: string | null
+          statement_start?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "statement_imports_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statement_imports_debt_id_fkey"
+            columns: ["debt_id"]
+            isOneToOne: false
+            referencedRelation: "debts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {

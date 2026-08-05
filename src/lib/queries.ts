@@ -104,3 +104,74 @@ export function useAllData(userId: string | undefined) {
     reminders: reminders.data ?? [],
   };
 }
+export function useStatementImports(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["statement_imports", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("statement_imports").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as import("./types").StatementImport[];
+    },
+  });
+}
+
+export function useImportItems(importId: string | undefined) {
+  return useQuery({
+    queryKey: ["import_items", importId],
+    enabled: !!importId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("import_items").select("*").eq("import_id", importId!).order("occurred_on");
+      if (error) throw error;
+      return (data ?? []) as unknown as import("./types").ImportItem[];
+    },
+  });
+}
+
+export function usePaydayPlans(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["payday_plans", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("payday_plans").select("*").order("pay_date", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as import("./types").PaydayPlan[];
+    },
+  });
+}
+
+export function usePlanItems(planId: string | undefined) {
+  return useQuery({
+    queryKey: ["payday_plan_items", planId],
+    enabled: !!planId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("payday_plan_items").select("*").eq("plan_id", planId!).order("sort_order");
+      if (error) throw error;
+      return (data ?? []) as unknown as import("./types").PaydayPlanItem[];
+    },
+  });
+}
+
+export function useNotificationLog(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["notification_log", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("notification_log").select("*").order("created_at", { ascending: false }).limit(100);
+      if (error) throw error;
+      return (data ?? []) as unknown as import("./types").NotificationEntry[];
+    },
+  });
+}
+
+export function useAuditLog(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["audit_log", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("audit_log").select("*").order("created_at", { ascending: false }).limit(200);
+      if (error) throw error;
+      return (data ?? []) as unknown as import("./types").AuditEntry[];
+    },
+  });
+}

@@ -79,4 +79,90 @@ export interface Reminder {
   recurrence: string;
   kind: string;
   completed: boolean;
+  paused: boolean;
+  snoozed_until: string | null;
+  last_fired_at: string | null;
+  notify_browser: boolean;
+}
+export interface StatementImport {
+  id: string;
+  user_id: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  doc_kind: string;
+  account_id: string | null;
+  debt_id: string | null;
+  statement_start: string | null;
+  statement_end: string | null;
+  detected: Record<string, { value: number | string; confidence: number; raw: string }>;
+  status: string;
+  items_total: number;
+  items_accepted: number;
+  created_at: string;
+}
+
+export interface ImportItem {
+  id: string;
+  user_id: string;
+  import_id: string;
+  item_type: string;
+  occurred_on: string | null;
+  description: string | null;
+  amount: number | string;
+  category: string | null;
+  tx_type: string;
+  confidence: number | string;
+  duplicate_of: string | null;
+  decision: string;
+  raw: string | null;
+}
+
+export interface PaydayPlan {
+  id: string;
+  user_id: string;
+  pay_date: string;
+  expected_pay: number | string;
+  starting_cash: number | string;
+  buffer: number | string;
+  spending_allowance: number | string;
+  extra_debt_payment: number | string;
+  notes: string | null;
+  status: string;
+  created_at: string;
+}
+
+export interface PaydayPlanItem {
+  id: string;
+  user_id: string;
+  plan_id: string;
+  label: string;
+  kind: string;
+  debt_id: string | null;
+  amount: number | string;
+  actual_amount: number | string | null;
+  paid: boolean;
+  sort_order: number;
+}
+
+export interface NotificationEntry {
+  id: string;
+  user_id: string;
+  reminder_id: string | null;
+  title: string;
+  body: string | null;
+  channel: string;
+  read: boolean;
+  created_at: string;
+}
+
+export interface AuditEntry {
+  id: string;
+  user_id: string;
+  entity: string;
+  entity_id: string | null;
+  action: string;
+  summary: string;
+  details: Record<string, unknown>;
+  created_at: string;
 }
