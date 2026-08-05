@@ -40,7 +40,10 @@ function Dashboard() {
           <div className="rounded-xl bg-card/60 p-3"><div className="text-xs text-muted-foreground">High-interest debt</div><div className="mt-1 font-display text-xl text-destructive">{money(hi)}</div></div>
           <div className="rounded-xl bg-card/60 p-3"><div className="text-xs text-muted-foreground">Retirement</div><div className="mt-1 font-display text-xl text-accent">{money(totalRetirement(ctx))}</div></div>
         </div>
-        <Button className="mt-5 w-full bg-violet-grad" onClick={() => setShowPlan((s) => !s)}>Plan my next pay <ArrowRight className="ml-2 h-4 w-4" /></Button>
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <Button className="bg-violet-grad" asChild><Link to="/payday">Plan my next pay <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+          <Button variant="secondary" onClick={() => setShowPlan((s) => !s)}>{showPlan ? "Hide quick plan" : "Quick plan"}</Button>
+        </div>
         {showPlan && (
           <div className="mt-4 rounded-xl bg-card/70 p-4 text-sm">
             {paydayPlan(ctx).map((l, i) => <div key={i} className="py-0.5">{l}</div>)}

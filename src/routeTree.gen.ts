@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUploadsRouteImport } from './routes/_authenticated/uploads'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedPaydayRouteImport } from './routes/_authenticated/payday'
 import { Route as AuthenticatedMoreRouteImport } from './routes/_authenticated/more'
 import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/goals'
 import { Route as AuthenticatedDebtsRouteImport } from './routes/_authenticated/debts'
@@ -45,6 +46,11 @@ const AuthenticatedUploadsRoute = AuthenticatedUploadsRouteImport.update({
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPaydayRoute = AuthenticatedPaydayRouteImport.update({
+  id: '/payday',
+  path: '/payday',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMoreRoute = AuthenticatedMoreRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/debts': typeof AuthenticatedDebtsRoute
   '/goals': typeof AuthenticatedGoalsRoute
   '/more': typeof AuthenticatedMoreRoute
+  '/payday': typeof AuthenticatedPaydayRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/uploads': typeof AuthenticatedUploadsRoute
 }
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/debts': typeof AuthenticatedDebtsRoute
   '/goals': typeof AuthenticatedGoalsRoute
   '/more': typeof AuthenticatedMoreRoute
+  '/payday': typeof AuthenticatedPaydayRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/uploads': typeof AuthenticatedUploadsRoute
 }
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/_authenticated/debts': typeof AuthenticatedDebtsRoute
   '/_authenticated/goals': typeof AuthenticatedGoalsRoute
   '/_authenticated/more': typeof AuthenticatedMoreRoute
+  '/_authenticated/payday': typeof AuthenticatedPaydayRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/uploads': typeof AuthenticatedUploadsRoute
 }
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/debts'
     | '/goals'
     | '/more'
+    | '/payday'
     | '/settings'
     | '/uploads'
   fileRoutesByTo: FileRoutesByTo
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/debts'
     | '/goals'
     | '/more'
+    | '/payday'
     | '/settings'
     | '/uploads'
   id:
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/_authenticated/debts'
     | '/_authenticated/goals'
     | '/_authenticated/more'
+    | '/_authenticated/payday'
     | '/_authenticated/settings'
     | '/_authenticated/uploads'
   fileRoutesById: FileRoutesById
@@ -220,6 +232,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payday': {
+      id: '/_authenticated/payday'
+      path: '/payday'
+      fullPath: '/payday'
+      preLoaderRoute: typeof AuthenticatedPaydayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/more': {
@@ -290,6 +309,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDebtsRoute: typeof AuthenticatedDebtsRoute
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRoute
   AuthenticatedMoreRoute: typeof AuthenticatedMoreRoute
+  AuthenticatedPaydayRoute: typeof AuthenticatedPaydayRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedUploadsRoute: typeof AuthenticatedUploadsRoute
 }
@@ -303,6 +323,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDebtsRoute: AuthenticatedDebtsRoute,
   AuthenticatedGoalsRoute: AuthenticatedGoalsRoute,
   AuthenticatedMoreRoute: AuthenticatedMoreRoute,
+  AuthenticatedPaydayRoute: AuthenticatedPaydayRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedUploadsRoute: AuthenticatedUploadsRoute,
 }
