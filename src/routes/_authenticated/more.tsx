@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CreditCard, Target, Bell, Upload, Settings, LogOut, ChevronRight } from "lucide-react";
+import { CalendarDays, CreditCard, Target, Bell, Upload, Settings, LogOut, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/_authenticated/more")({
 function MorePage() {
   const navigate = useNavigate();
   const items = [
+    { to: "/payday", label: "Payday planner", icon: CalendarDays },
     { to: "/debts", label: "Debts", icon: CreditCard },
     { to: "/goals", label: "Goals", icon: Target },
     { to: "/automations", label: "Automations", icon: Bell },

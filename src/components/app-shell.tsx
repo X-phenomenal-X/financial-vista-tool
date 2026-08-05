@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, ListOrdered, PieChart, Sparkles, Menu as MenuIcon, Plus, CreditCard, Target, Bell, Upload, Settings, LogOut } from "lucide-react";
+import { Home, ListOrdered, PieChart, Sparkles, Menu as MenuIcon, Plus, CreditCard, CalendarDays, Target, Bell, Upload, Settings, LogOut } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ const TABS = [
 
 const SIDE = [
   ...TABS.slice(0, 4),
+  { to: "/payday", label: "Payday Planner", icon: CalendarDays },
   { to: "/debts", label: "Debts", icon: CreditCard },
   { to: "/goals", label: "Goals", icon: Target },
   { to: "/automations", label: "Automations", icon: Bell },
