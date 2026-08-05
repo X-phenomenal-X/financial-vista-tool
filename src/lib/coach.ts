@@ -1,7 +1,16 @@
 // Rules-based financial coach. All logic operates on live app data.
-// Deterministic so it works without any paid AI API.
-import type { Account, Debt, BudgetCategory, Transaction, Reminder, Goal } from "./types";
-import { money, dateShort, daysUntil } from "./format";
+// Deterministic so it works without a paid AI API.
+import type {
+  Account,
+  BudgetCategory,
+  Debt,
+  Goal,
+  PaydayPlan,
+  Reminder,
+  StatementImport,
+  Transaction,
+} from "./types";
+import { dateShort, daysUntil, money } from "./format";
 
 export interface CoachContext {
   accounts: Account[];
@@ -10,6 +19,8 @@ export interface CoachContext {
   transactions: Transaction[];
   reminders: Reminder[];
   goals: Goal[];
+  paydayPlans?: PaydayPlan[];
+  statementImports?: StatementImport[];
 }
 
 export const CASH_BUFFER = 500;
@@ -19,36 +30,42 @@ const CASH_KINDS = new Set(["chequing", "savings", "money_master"]);
 const RETIREMENT_KINDS = new Set(["rrsp", "dpsp"]);
 
 export function totalCash(ctx: CoachContext) {
-  return ctx.accounts.filter((a) => CASH_KINDS.has(a.kind)).reduce((s, a) => s + Number(a.balance), 0);
+  return ctx.accounts.filter((a) => CASH_KINDS.has(a.kind)).reduce((sum, account) => sum + Number(account.balance), 0);
 }
+
 export function totalRetirement(ctx: CoachContext) {
-  return ctx.accounts.filter((a) => RETIREMENT_KINDS.has(a.kind)).reduce((s, a) => s + Number(a.balance), 0);
+  return ctx.accounts.filter((a) => RETIREMENT_KINDS.has(a.kind)).reduce((sum, account) => sum + Number(account.balance), 0);
 }
+
 export function highInterestDebt(ctx: CoachContext) {
   return ctx.debts
     .filter((d) => d.status !== "cleared" && (d.kind === "credit_card" || d.kind === "bnpl"))
-    .reduce((s, d) => s + Number(d.balance) + Number(d.pending || 0), 0);
+    .reduce((sum, debt) => sum + Number(debt.balance) + Number(debt.pending || 0), 0);
 }
+
 export function carLoanBalance(ctx: CoachContext) {
-  return ctx.debts.filter((d) => d.kind === "car_loan").reduce((s, d) => s + Number(d.balance), 0);
+  return ctx.debts.filter((d) => d.kind === "car_loan").reduce((sum, debt) => sum + Number(debt.balance), 0);
 }
+
 export function netWorth(ctx: CoachContext) {
-  const assets = ctx.accounts.reduce((s, a) => s + Number(a.balance), 0);
-  const liab = ctx.debts.reduce((s, d) => s + Number(d.balance) + Number(d.pending || 0), 0);
-  return assets - liab;
+  const assets = ctx.accounts.reduce((sum, account) => sum + Number(account.balance), 0);
+  const liabilities = ctx.debts.reduce((sum, debt) => sum + Number(debt.balance) + Number(debt.pending || 0), 0);
+  return assets - liabilities;
 }
+
 export function availableAboveBuffer(ctx: CoachContext) {
   return Math.max(0, totalCash(ctx) - CASH_BUFFER);
 }
-export function utilization(d: Debt) {
-  if (!d.credit_limit || Number(d.credit_limit) <= 0) return 0;
-  return (Number(d.balance) + Number(d.pending || 0)) / Number(d.credit_limit);
+
+export function utilization(debt: Debt) {
+  if (!debt.credit_limit || Number(debt.credit_limit) <= 0) return 0;
+  return (Number(debt.balance) + Number(debt.pending || 0)) / Number(debt.credit_limit);
 }
 
 export function priorityOrder(ctx: CoachContext) {
-  // Past-due first, then avalanche (APR desc), car loan last.
+  // Past-due first, then avalanche (APR descending), car loan last.
   return [...ctx.debts]
-    .filter((d) => d.status !== "cleared")
+    .filter((debt) => debt.status !== "cleared")
     .sort((a, b) => {
       const pastA = a.status === "past_due" ? 0 : 1;
       const pastB = b.status === "past_due" ? 0 : 1;
@@ -60,55 +77,121 @@ export function priorityOrder(ctx: CoachContext) {
     });
 }
 
-export function urgentActions(ctx: CoachContext): { text: string; tone: "danger" | "warning" | "info"; icon?: string }[] {
-  const out: { text: string; tone: "danger" | "warning" | "info" }[] = [];
+function activePaydayPlan(ctx: CoachContext) {
+  return [...(ctx.paydayPlans ?? [])]
+    .filter((plan) => plan.status === "active")
+    .sort((a, b) => new Date(b.pay_date).getTime() - new Date(a.pay_date).getTime())[0] ?? null;
+}
+
+function nextPayday(ctx: CoachContext) {
+  const futurePlans = (ctx.paydayPlans ?? [])
+    .filter((plan) => new Date(plan.pay_date).getTime() >= new Date().setHours(0, 0, 0, 0))
+    .sort((a, b) => new Date(a.pay_date).getTime() - new Date(b.pay_date).getTime());
+  if (futurePlans[0]) return futurePlans[0].pay_date;
+
+  const reminder = ctx.reminders
+    .filter((item) => item.kind === "payday" && !item.completed && !item.paused)
+    .sort((a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime())[0];
+  return reminder?.due_at ?? null;
+}
+
+function upcomingMinimums(ctx: CoachContext, through?: string | null) {
+  const end = through ? new Date(through).getTime() : Date.now() + 14 * 86400000;
+  return ctx.debts
+    .filter((debt) => {
+      if (debt.status === "cleared" || debt.kind === "car_loan") return false;
+      if (debt.status === "past_due") return true;
+      return Boolean(debt.due_date && new Date(debt.due_date).getTime() <= end);
+    })
+    .reduce((sum, debt) => sum + Number(debt.minimum_payment || 0), 0);
+}
+
+function pendingImports(ctx: CoachContext) {
+  return (ctx.statementImports ?? []).filter((item) => item.status === "pending");
+}
+
+export function urgentActions(ctx: CoachContext): { text: string; tone: "danger" | "warning" | "info" }[] {
+  const actions: { text: string; tone: "danger" | "warning" | "info" }[] = [];
+
   ctx.debts
-    .filter((d) => d.status === "past_due")
-    .forEach((d) => out.push({ text: `${d.name}: past due — pay minimum ${money(d.minimum_payment)} today`, tone: "danger" }));
-  ctx.debts.forEach((d) => {
-    const u = utilization(d);
-    if (u >= 1) out.push({ text: `${d.name} is ${(u * 100).toFixed(0)}% of limit`, tone: "danger" });
-    else if (u >= 0.8) out.push({ text: `${d.name} at ${(u * 100).toFixed(0)}% utilization`, tone: "warning" });
+    .filter((debt) => debt.status === "past_due")
+    .forEach((debt) => actions.push({ text: `${debt.name}: past due — pay minimum ${money(debt.minimum_payment)} today`, tone: "danger" }));
+
+  ctx.debts.forEach((debt) => {
+    const used = utilization(debt);
+    if (used >= 1) actions.push({ text: `${debt.name} is ${(used * 100).toFixed(0)}% of its limit`, tone: "danger" });
+    else if (used >= 0.8) actions.push({ text: `${debt.name} is at ${(used * 100).toFixed(0)}% utilization`, tone: "warning" });
   });
+
   ctx.debts
-    .filter((d) => d.due_date && d.status !== "cleared")
-    .map((d) => ({ d, days: daysUntil(d.due_date!) }))
-    .filter((x) => x.days >= 0 && x.days <= 5)
+    .filter((debt) => debt.due_date && debt.status !== "cleared")
+    .map((debt) => ({ debt, days: daysUntil(debt.due_date!) }))
+    .filter((item) => item.days >= 0 && item.days <= 5)
     .sort((a, b) => a.days - b.days)
-    .forEach(({ d, days }) => {
-      const tone = days <= 2 ? "warning" : "info";
-      out.push({ text: `${d.name} minimum (${money(d.minimum_payment)}) due in ${days} day${days === 1 ? "" : "s"} · ${dateShort(d.due_date!)}`, tone });
+    .forEach(({ debt, days }) => {
+      actions.push({
+        text: `${debt.name} minimum (${money(debt.minimum_payment)}) due in ${days} day${days === 1 ? "" : "s"} · ${dateShort(debt.due_date!)}`,
+        tone: days <= 2 ? "warning" : "info",
+      });
     });
-  return out.slice(0, 3);
+
+  const imports = pendingImports(ctx);
+  if (imports.length) actions.push({ text: `${imports.length} statement import${imports.length === 1 ? " needs" : "s need"} review`, tone: "info" });
+
+  return actions.slice(0, 3);
 }
 
 export function todayAction(ctx: CoachContext): string {
-  const u = urgentActions(ctx);
-  if (u.length) return u[0].text + ".";
-  const order = priorityOrder(ctx).filter((d) => d.kind !== "car_loan");
-  if (order.length) return `Focus extra payment on ${order[0].name} (${Number(order[0].apr).toFixed(2)}% APR). Keep ${money(CASH_BUFFER)} buffer.`;
-  return "You're clear today — move any surplus into your emergency fund.";
+  const urgent = urgentActions(ctx);
+  if (urgent.length) return `${urgent[0].text}. Next action: handle that item now.`;
+
+  const plan = activePaydayPlan(ctx);
+  if (plan && new Date(plan.pay_date).getTime() <= Date.now()) {
+    return `Your saved payday plan for ${dateShort(plan.pay_date)} is active. Next action: mark its allocations paid or enter actual amounts.`;
+  }
+
+  const order = priorityOrder(ctx).filter((debt) => debt.kind !== "car_loan");
+  if (order.length) {
+    return `Focus extra money on ${order[0].name} (${Number(order[0].apr).toFixed(2)}% APR) while keeping ${money(CASH_BUFFER)} cash. Next action: confirm all minimums are scheduled.`;
+  }
+
+  return "No urgent debt action today. Next action: move available surplus into your emergency fund.";
 }
 
 export function paydayPlan(ctx: CoachContext, paycheck = 2800): string[] {
-  const lines: string[] = [];
+  const saved = activePaydayPlan(ctx);
+  const expectedPay = saved ? Number(saved.expected_pay) : paycheck;
   const cash = totalCash(ctx);
-  let running = cash + paycheck;
-  lines.push(`Start: cash ${money(cash)} + paycheck ${money(paycheck)} = ${money(running)}.`);
-  lines.push(`Hold ${money(CASH_BUFFER)} buffer → available: ${money(running - CASH_BUFFER)}.`);
-  running -= CASH_BUFFER;
-  const order = priorityOrder(ctx).filter((d) => d.kind !== "car_loan");
-  let deploy = Math.min(running, CC_TARGET);
-  for (const d of order) {
-    if (deploy <= 0) break;
-    const owed = Number(d.balance) + Number(d.pending || 0);
-    const pay = Math.min(deploy, Math.max(Number(d.minimum_payment), owed));
-    if (pay <= 0) continue;
-    lines.push(`Pay ${money(pay)} → ${d.name} (${Number(d.apr).toFixed(2)}% APR).`);
-    deploy -= pay;
-    running -= pay;
+  const buffer = saved ? Number(saved.buffer) : CASH_BUFFER;
+  const dueMinimums = upcomingMinimums(ctx, nextPayday(ctx));
+  const lines: string[] = [];
+  let running = cash + expectedPay;
+
+  lines.push(`Cash ${money(cash)} + expected pay ${money(expectedPay)} = ${money(running)}.`);
+  lines.push(`Keep buffer ${money(buffer)}.`);
+  running -= buffer;
+
+  if (dueMinimums > 0) {
+    lines.push(`Reserve ${money(dueMinimums)} for overdue or upcoming card minimums.`);
+    running -= dueMinimums;
   }
-  lines.push(`Ending cash after CC payments: ${money(running + CASH_BUFFER)}.`);
+
+  const order = priorityOrder(ctx).filter((debt) => debt.kind !== "car_loan");
+  const target = order[0];
+  const extraTarget = saved ? Number(saved.extra_debt_payment || 0) : Math.min(CC_TARGET, Math.max(0, running));
+  const extra = Math.min(Math.max(0, running), extraTarget);
+  if (target && extra > 0) {
+    lines.push(`Send ${money(extra)} extra to ${target.name} (${Number(target.apr).toFixed(2)}% APR).`);
+    running -= extra;
+  }
+
+  if (saved && Number(saved.spending_allowance) > 0) {
+    lines.push(`Saved spending allowance: ${money(saved.spending_allowance)}.`);
+    running -= Number(saved.spending_allowance);
+  }
+
+  lines.push(`Projected cash remaining: ${money(running + buffer)}.`);
+  lines.push("Next action: open Payday Planner and confirm every line before paying.");
   return lines;
 }
 
@@ -116,87 +199,207 @@ function budgetProgress(ctx: CoachContext) {
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
-  const rows = ctx.budget.filter((b) => b.kind !== "transfer" && b.kind !== "income");
-  return rows.map((b) => {
-    const actual = ctx.transactions
-      .filter((t) => t.category === b.name && new Date(t.occurred_on) >= monthStart && t.type !== "transfer")
-      .reduce((s, t) => s + Number(t.amount), 0);
-    return { name: b.name, planned: Number(b.planned), actual, remaining: Number(b.planned) - actual };
-  });
+
+  return ctx.budget
+    .filter((item) => item.kind !== "transfer" && item.kind !== "income")
+    .map((item) => {
+      const actual = ctx.transactions
+        .filter(
+          (transaction) =>
+            transaction.category === item.name &&
+            new Date(transaction.occurred_on) >= monthStart &&
+            transaction.type !== "transfer",
+        )
+        .reduce((sum, transaction) => sum + Number(transaction.amount), 0);
+      return {
+        name: item.name,
+        planned: Number(item.planned),
+        actual,
+        remaining: Number(item.planned) - actual,
+      };
+    });
+}
+
+function matchCategory(ctx: CoachContext, raw: string) {
+  const normalized = raw.toLowerCase().replace(/[^a-z0-9 &]/g, " ").replace(/\s+/g, " ").trim();
+  if (!normalized) return null;
+  const rows = budgetProgress(ctx);
+  return (
+    rows.find((row) => normalized.includes(row.name.toLowerCase())) ??
+    rows.find((row) => row.name.toLowerCase().includes(normalized)) ??
+    rows.find((row) => row.name.toLowerCase().split(/[ &/]+/).some((word) => word.length > 3 && normalized.includes(word))) ??
+    null
+  );
 }
 
 export function whereDidMoneyGo(ctx: CoachContext): string {
   const rows = budgetProgress(ctx).sort((a, b) => b.actual - a.actual).slice(0, 5);
-  if (!rows.some((r) => r.actual > 0)) return "No spending logged this month yet. Add a few transactions and I'll break it down.";
-  return "This month's top spend:\n" + rows.map((r) => `• ${r.name}: ${money(r.actual)}${r.planned > 0 ? ` of ${money(r.planned)}` : ""}`).join("\n") + "\n\nNext action: cut the biggest overshoot by $20 next week.";
+  if (!rows.some((row) => row.actual > 0)) {
+    return "No spending is logged this month. Next action: add or import your recent transactions.";
+  }
+
+  const biggestOvershoot = rows
+    .filter((row) => row.planned > 0 && row.actual > row.planned)
+    .sort((a, b) => b.actual - b.planned - (a.actual - a.planned))[0];
+  const action = biggestOvershoot
+    ? `Next action: pause ${biggestOvershoot.name} spending until its ${money(biggestOvershoot.actual - biggestOvershoot.planned)} overage is recovered.`
+    : `Next action: review ${rows[0].name}, your largest category at ${money(rows[0].actual)}.`;
+
+  return `This month's top spending:\n${rows
+    .map((row) => `• ${row.name}: ${money(row.actual)}${row.planned > 0 ? ` of ${money(row.planned)}` : ""}`)
+    .join("\n")}\n\n${action}`;
+}
+
+export function changesSinceLastPayday(ctx: CoachContext): string {
+  const today = new Date();
+  const planDates = (ctx.paydayPlans ?? [])
+    .map((plan) => plan.pay_date)
+    .filter((date) => new Date(date) <= today)
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  const incomeDates = ctx.transactions
+    .filter((transaction) => transaction.type === "income" && new Date(transaction.occurred_on) <= today)
+    .map((transaction) => transaction.occurred_on)
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  const since = planDates[0] ?? incomeDates[0];
+
+  if (!since) {
+    return "I do not have a saved payday plan or income transaction to use as a starting point. Next action: save your next payday plan or log your pay deposit.";
+  }
+
+  const transactions = ctx.transactions.filter((transaction) => new Date(transaction.occurred_on) >= new Date(since));
+  const income = transactions.filter((transaction) => transaction.type === "income").reduce((sum, item) => sum + Number(item.amount), 0);
+  const expenses = transactions.filter((transaction) => transaction.type === "expense").reduce((sum, item) => sum + Number(item.amount), 0);
+  const debtPayments = transactions.filter((transaction) => transaction.type === "debt_payment").reduce((sum, item) => sum + Number(item.amount), 0);
+  const importCount = pendingImports(ctx).length;
+
+  return [
+    `Since ${dateShort(since)}:`,
+    `• Income logged: ${money(income)}`,
+    `• Expenses logged: ${money(expenses)}`,
+    `• Debt payments logged: ${money(debtPayments)}`,
+    `• Cash now: ${money(totalCash(ctx))}`,
+    importCount ? `• Statement imports waiting: ${importCount}` : "• No statement imports waiting",
+    `Next action: ${importCount ? "review the pending statement import before trusting the totals." : "compare these totals with your bank balance and update anything missing."}`,
+  ].join("\n");
 }
 
 export function howAmIDoing(ctx: CoachContext): string {
   const rows = budgetProgress(ctx);
-  const over = rows.filter((r) => r.planned > 0 && r.actual > r.planned);
+  const over = rows.filter((row) => row.planned > 0 && row.actual > row.planned);
   const cash = totalCash(ctx);
+  const payday = nextPayday(ctx);
+  const minimums = upcomingMinimums(ctx, payday);
   const parts = [
-    `Cash: ${money(cash)} ${cash < CASH_BUFFER ? `— ⚠️ below ${money(CASH_BUFFER)} buffer.` : `(buffer ok).`}`,
+    `Cash: ${money(cash)} ${cash < CASH_BUFFER ? `— below the ${money(CASH_BUFFER)} buffer.` : `— buffer protected.`}`,
     `High-interest debt: ${money(highInterestDebt(ctx))}.`,
+    `Card minimums due before ${payday ? dateShort(payday) : "the next two weeks"}: ${money(minimums)}.`,
   ];
-  if (over.length) parts.push(`Over budget: ${over.map((o) => `${o.name} (+${money(o.actual - o.planned)})`).join(", ")}.`);
-  else parts.push("No categories over budget yet.");
-  parts.push(`Next action: ${todayAction(ctx)}`);
+
+  if (over.length) parts.push(`Over budget: ${over.map((item) => `${item.name} (+${money(item.actual - item.planned)})`).join(", ")}.`);
+  else parts.push("No tracked category is over budget.");
+
+  const imports = pendingImports(ctx).length;
+  if (imports) parts.push(`${imports} statement import${imports === 1 ? " is" : "s are"} waiting for review.`);
+  parts.push(`Next action: ${todayAction(ctx).replace(/^.*Next action:\s*/i, "")}`);
   return parts.join("\n");
 }
 
-export function canIAfford(ctx: CoachContext, amount: number, category?: string): string {
-  if (!amount || amount <= 0) return "Enter an amount, e.g. \"Can I afford $80?\"";
+export function canIAfford(ctx: CoachContext, amount: number, categoryRaw?: string): string {
+  if (!amount || amount <= 0) return 'Tell me the amount and category, for example: "Can I afford $80 for dining?"';
+  if (!categoryRaw?.trim()) return 'I need the category too, for example: "Can I afford $80 for dining?"';
+
+  const category = matchCategory(ctx, categoryRaw);
+  if (!category) {
+    const available = budgetProgress(ctx).map((row) => row.name).slice(0, 8).join(", ");
+    return `I could not match “${categoryRaw.trim()}” to a budget category. Available categories include ${available || "none yet"}. Next action: choose a category or add it to your budget.`;
+  }
+
   const cash = totalCash(ctx);
-  const after = cash - amount;
-  const bufferOk = after >= CASH_BUFFER;
-  const catRow = category ? budgetProgress(ctx).find((r) => r.name.toLowerCase().includes(category.toLowerCase())) : null;
-  const lines: string[] = [];
-  lines.push(`After ${money(amount)}: cash ${money(after)}.`);
-  if (!bufferOk) lines.push(`⚠️ Breaks your ${money(CASH_BUFFER)} buffer.`);
-  if (catRow) {
-    const remAfter = catRow.remaining - amount;
-    lines.push(`${catRow.name}: ${money(catRow.actual)} of ${money(catRow.planned)} spent — ${remAfter >= 0 ? `${money(remAfter)} would remain.` : `⚠️ over by ${money(-remAfter)}.`}`);
+  const payday = nextPayday(ctx);
+  const minimums = upcomingMinimums(ctx, payday);
+  const plan = activePaydayPlan(ctx);
+  const plannedExtraDebt = plan ? Number(plan.extra_debt_payment || 0) : 0;
+  const protectedCash = CASH_BUFFER + minimums + plannedExtraDebt;
+  const cashAfter = cash - amount;
+  const categoryAfter = category.remaining - amount;
+  const affordable = cashAfter >= protectedCash && categoryAfter >= 0;
+
+  const lines = [
+    `Purchase: ${money(amount)} in ${category.name}.`,
+    `Cash after purchase: ${money(cashAfter)}.`,
+    `Protected amount: ${money(protectedCash)} = ${money(CASH_BUFFER)} buffer + ${money(minimums)} upcoming minimums${plannedExtraDebt ? ` + ${money(plannedExtraDebt)} saved extra debt payment` : ""}.`,
+    `${category.name} remaining after purchase: ${money(categoryAfter)}.`,
+  ];
+
+  if (!affordable) {
+    const shortage = Math.max(0, protectedCash - cashAfter);
+    if (shortage > 0) lines.push(`This would leave you ${money(shortage)} short of protected cash.`);
+    if (categoryAfter < 0) lines.push(`This would put the category ${money(-categoryAfter)} over budget.`);
+    lines.push("Next action: skip it or reduce the amount until both protected cash and the category budget stay positive.");
+  } else {
+    lines.push(`Next action: it fits your current plan; pay with available cash and log it immediately.`);
   }
-  const order = priorityOrder(ctx).filter((d) => d.kind !== "car_loan");
-  if (order.length && bufferOk) {
-    const saved = (Number(order[0].apr) / 100) * amount;
-    lines.push(`Alt: ${money(amount)} → ${order[0].name} saves ~${money(saved)} interest/yr.`);
-  }
-  lines.push(`Next action: ${bufferOk && (!catRow || catRow.remaining >= amount) ? "yes, you can afford it — log it after." : "skip or scale down."}`);
+
   return lines.join("\n");
 }
 
 export function nextToPay(ctx: CoachContext): string {
-  const order = priorityOrder(ctx);
-  if (!order.length) return "Nothing to pay — you're clear.";
-  const d = order[0];
-  if (d.status === "past_due") return `Pay ${d.name} first — PAST DUE. Minimum ${money(d.minimum_payment)}. Next action: schedule the payment now.`;
-  return `Pay ${d.name} next. APR ${Number(d.apr).toFixed(2)}%. Balance ${money(Number(d.balance) + Number(d.pending || 0))}. Next action: pay minimum ${money(d.minimum_payment)} plus whatever's above your ${money(CASH_BUFFER)} cash buffer.`;
+  const order = priorityOrder(ctx).filter((debt) => debt.kind !== "car_loan");
+  if (!order.length) return "No high-interest balance is active. Next action: direct surplus to your emergency fund.";
+  const debt = order[0];
+  const balance = Number(debt.balance) + Number(debt.pending || 0);
+
+  if (debt.status === "past_due") {
+    return `Pay ${debt.name} first because it is past due. Minimum ${money(debt.minimum_payment)}, balance ${money(balance)}. Next action: schedule at least the minimum now.`;
+  }
+
+  return `Pay ${debt.name} next because its APR is ${Number(debt.apr).toFixed(2)}%, the highest active rate. Balance ${money(balance)}, minimum ${money(debt.minimum_payment)}. Cash above your ${money(CASH_BUFFER)} buffer is ${money(availableAboveBuffer(ctx))}. Next action: confirm all minimums, then send available extra money to ${debt.name}.`;
 }
 
 export function coachAnswer(prompt: string, ctx: CoachContext): string {
-  const p = prompt.toLowerCase().trim();
-  if (!p) return "Ask me anything — try one of the quick prompts.";
-  if (/pay.*(next|first)|what.*pay|which.*debt/.test(p)) return nextToPay(ctx);
-  if (/afford/.test(p)) {
-    const m = p.match(/\$?([\d,]+(?:\.\d+)?)/);
-    if (!m) return "Tell me the amount and (optional) category — e.g. \"Can I afford $80 dining?\"";
-    const amount = parseFloat(m[1].replace(/,/g, ""));
-    const cat = p.replace(m[0], "").replace(/can i afford|for|on|\$/g, "").trim();
-    return canIAfford(ctx, amount, cat || undefined);
+  const normalized = prompt.toLowerCase().trim();
+  if (!normalized) return "Ask a money question or choose a quick prompt. Next action: start with what you need to decide today.";
+
+  if (/changed.*(payday|pay day)|since.*(payday|pay day)|last payday/.test(normalized)) return changesSinceLastPayday(ctx);
+  if (/what.*today|do today|today.*action/.test(normalized)) return todayAction(ctx);
+  if (/pay.*(next|first)|what.*pay|which.*debt/.test(normalized)) return nextToPay(ctx);
+
+  if (/afford/.test(normalized)) {
+    const amountMatch = normalized.match(/\$?([\d,]+(?:\.\d+)?)/);
+    if (!amountMatch) return 'Tell me the amount and category, for example: "Can I afford $80 for dining?"';
+    const amount = Number(amountMatch[1].replace(/,/g, ""));
+    const category = normalized
+      .replace(amountMatch[0], " ")
+      .replace(/can i afford|could i afford|for|on|a purchase|this|\$/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return canIAfford(ctx, amount, category || undefined);
   }
-  if (/where.*money|spend|went/.test(p)) return whereDidMoneyGo(ctx);
-  if (/payday|payment.*day|paycheck/.test(p)) return paydayPlan(ctx).join("\n") + "\n\nNext action: run this plan on your next pay date.";
-  if (/how.*doing|month|status|health/.test(p)) return howAmIDoing(ctx);
-  if (/buffer|cash/.test(p)) return `Cash buffer target: ${money(CASH_BUFFER)}. Current cash: ${money(totalCash(ctx))}. Available above buffer: ${money(availableAboveBuffer(ctx))}.`;
-  if (/rrsp|dpsp|retire/.test(p)) return `Workplace retirement: ${money(totalRetirement(ctx))}. Keep matched contributions running — employer match is free money. Next action: don't reduce contributions to pay debt faster; the match beats the APR.`;
+
+  if (/where.*money|spend|went/.test(normalized)) return whereDidMoneyGo(ctx);
+  if (/payday|payment.*day|paycheck/.test(normalized)) return paydayPlan(ctx).join("\n");
+  if (/how.*doing|month|status|financial health/.test(normalized)) return howAmIDoing(ctx);
+  if (/buffer|cash/.test(normalized)) {
+    return `Cash buffer target: ${money(CASH_BUFFER)}. Current cash: ${money(totalCash(ctx))}. Available above buffer: ${money(availableAboveBuffer(ctx))}. Next action: do not spend the buffer while high-interest debt is active.`;
+  }
+  if (/rrsp|dpsp|retire/.test(normalized)) {
+    return `Workplace retirement: ${money(totalRetirement(ctx))}. Keep the matched contribution running because the employer match is part of your compensation. Next action: do not add unmatched RRSP money until high-interest cards are cleared.`;
+  }
+  if (/statement|import/.test(normalized)) {
+    const imports = pendingImports(ctx);
+    return imports.length
+      ? `${imports.length} statement import${imports.length === 1 ? " is" : "s are"} waiting for review. Nothing changes balances until you approve it. Next action: open Statement Uploads and review low-confidence or duplicate items first.`
+      : "No statement import is waiting. Next action: upload your newest statement when available.";
+  }
+
   return todayAction(ctx);
 }
 
 export const QUICK_PROMPTS = [
+  "What should I do today?",
   "What should I pay next?",
-  "Can I afford this?",
+  "Can I afford $80 for dining?",
+  "What changed since last payday?",
   "Where did my money go?",
   "What should I do on payday?",
   "How am I doing this month?",

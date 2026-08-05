@@ -1,6 +1,14 @@
 import type { Debt } from "./types";
 
-export interface PayoffMonth { month: string; totalBalance: number; interest: number; paid: { debtId: string; amount: number }[]; cleared: string[]; }
+export interface PayoffMonth {
+  month: string;
+  totalBalance: number;
+  interest: number;
+  paid: { debtId: string; amount: number }[];
+  cleared: string[];
+  balances: { debtId: string; balance: number }[];
+}
+
 export interface PayoffResult {
   strategy: "avalanche" | "snowball";
   months: PayoffMonth[];
@@ -15,7 +23,9 @@ function monthLabel(d: Date) {
 }
 
 export function cardDebts(debts: Debt[]) {
-  return debts.filter((d) => d.status !== "cleared" && d.kind !== "car_loan" && Number(d.balance) + Number(d.pending || 0) > 0);
+  return debts.filter(
+    (d) => d.status !== "cleared" && d.kind !== "car_loan" && Number(d.balance) + Number(d.pending || 0) > 0,
+  );
 }
 
 export function simulate(
@@ -52,6 +62,7 @@ export function simulate(
     cursor.setMonth(cursor.getMonth() + 1);
     const label = monthLabel(cursor);
     let interestThisMonth = 0;
+
     for (const d of working) {
       if (d.balance <= 0.01) continue;
       const i = d.balance * (d.apr / 12);
@@ -68,21 +79,39 @@ export function simulate(
     for (const d of working) {
       if (d.balance <= 0.01 || budget <= 0) continue;
       const pay = Math.min(d.minimum, d.balance, budget);
-      d.balance -= pay; budget -= pay;
+      d.balance -= pay;
+      budget -= pay;
       paid.push({ debtId: d.id, amount: pay });
     }
-    // Then the strategy target.
+
+    // Then the selected strategy target.
     for (const d of order()) {
       if (budget <= 0) break;
       const pay = Math.min(budget, d.balance);
-      d.balance -= pay; budget -= pay;
-      const ex = paid.find((p) => p.debtId === d.id);
-      if (ex) ex.amount += pay; else paid.push({ debtId: d.id, amount: pay });
+      d.balance -= pay;
+      budget -= pay;
+      const existing = paid.find((p) => p.debtId === d.id);
+      if (existing) existing.amount += pay;
+      else paid.push({ debtId: d.id, amount: pay });
     }
+
     for (const d of working) {
-      if (d.balance <= 0.01 && !d.clearedMonth) { d.balance = 0; d.clearedMonth = label; cleared.push(d.id); }
+      if (d.balance <= 0.01 && !d.clearedMonth) {
+        d.balance = 0;
+        d.clearedMonth = label;
+        cleared.push(d.id);
+      }
     }
-    months.push({ month: label, totalBalance: working.reduce((s, d) => s + d.balance, 0), interest: interestThisMonth, paid, cleared });
+
+    months.push({
+      month: label,
+      totalBalance: working.reduce((s, d) => s + d.balance, 0),
+      interest: interestThisMonth,
+      paid,
+      cleared,
+      balances: working.map((d) => ({ debtId: d.id, balance: d.balance })),
+    });
+
     if (m === maxMonths - 1 && working.some((d) => d.balance > 0.01)) feasible = false;
   }
 
@@ -98,7 +127,13 @@ export function simulate(
         const bi = months.findIndex((m) => m.cleared.includes(b.id));
         return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
       })
-      .map((d) => ({ id: d.id, name: d.name, apr: d.apr * 100, balance: d.startBalance, clearedMonth: d.clearedMonth })),
+      .map((d) => ({
+        id: d.id,
+        name: d.name,
+        apr: d.apr * 100,
+        balance: d.startBalance,
+        clearedMonth: d.clearedMonth,
+      })),
     feasible,
   };
 }
