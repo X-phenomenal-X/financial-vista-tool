@@ -15,6 +15,7 @@ import {
   Activity,
   Lightbulb,
   TrendingUp,
+  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/more")({
   head: () => ({
     meta: [
       { title: "More — Wealthpilot" },
-      { name: "description", content: "Smart insights, cash-flow forecasting, notifications, financial health, net worth, subscriptions, bill calendar, payday planning, debts, goals, reminders, uploads, and settings." },
+      { name: "description", content: "Scenario planning, smart insights, cash-flow forecasting, notifications, financial health, net worth, subscriptions, bill calendar, payday planning, debts, goals, reminders, uploads, and settings." },
     ],
   }),
   component: MorePage,
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/_authenticated/more")({
 function MorePage() {
   const navigate = useNavigate();
   const items = [
+    { to: "/scenario-planner", label: "Scenario planner", icon: Sparkles },
     { to: "/insights", label: "Smart insights", icon: Lightbulb },
     { to: "/cash-flow", label: "Cash flow forecast", icon: TrendingUp },
     { to: "/notifications", label: "Notification center", icon: Bell },
