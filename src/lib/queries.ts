@@ -7,7 +7,11 @@ export function useProfile(userId: string | undefined) {
     queryKey: ["profile", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("*").eq("user_id", userId!).maybeSingle();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId!)
+        .maybeSingle();
       if (error) throw error;
       return data as Profile | null;
     },
@@ -43,7 +47,10 @@ export function useBudget(userId: string | undefined) {
     queryKey: ["budget", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("budget_categories").select("*").order("sort_order");
+      const { data, error } = await supabase
+        .from("budget_categories")
+        .select("*")
+        .order("sort_order");
       if (error) throw error;
       return (data ?? []) as BudgetCategory[];
     },
@@ -55,7 +62,11 @@ export function useTransactions(userId: string | undefined) {
     queryKey: ["transactions", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("transactions").select("*").order("occurred_on", { ascending: false }).limit(500);
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .order("occurred_on", { ascending: false })
+        .limit(500);
       if (error) throw error;
       return (data ?? []) as Transaction[];
     },
@@ -93,9 +104,33 @@ export function useAllData(userId: string | undefined) {
   const transactions = useTransactions(userId);
   const goals = useGoals(userId);
   const reminders = useReminders(userId);
-  const loading = accounts.isLoading || debts.isLoading || budget.isLoading || transactions.isLoading || goals.isLoading || reminders.isLoading;
+  const loading =
+    accounts.isLoading ||
+    debts.isLoading ||
+    budget.isLoading ||
+    transactions.isLoading ||
+    goals.isLoading ||
+    reminders.isLoading;
+  const error =
+    accounts.error ||
+    debts.error ||
+    budget.error ||
+    transactions.error ||
+    goals.error ||
+    reminders.error;
+  const refetch = () =>
+    Promise.all([
+      accounts.refetch(),
+      debts.refetch(),
+      budget.refetch(),
+      transactions.refetch(),
+      goals.refetch(),
+      reminders.refetch(),
+    ]);
   return {
     loading,
+    error,
+    refetch,
     accounts: accounts.data ?? [],
     debts: debts.data ?? [],
     budget: budget.data ?? [],
@@ -109,7 +144,10 @@ export function useStatementImports(userId: string | undefined) {
     queryKey: ["statement_imports", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("statement_imports").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("statement_imports")
+        .select("*")
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as import("./types").StatementImport[];
     },
@@ -121,7 +159,11 @@ export function useImportItems(importId: string | undefined) {
     queryKey: ["import_items", importId],
     enabled: !!importId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("import_items").select("*").eq("import_id", importId!).order("occurred_on");
+      const { data, error } = await supabase
+        .from("import_items")
+        .select("*")
+        .eq("import_id", importId!)
+        .order("occurred_on");
       if (error) throw error;
       return (data ?? []) as unknown as import("./types").ImportItem[];
     },
@@ -133,7 +175,10 @@ export function usePaydayPlans(userId: string | undefined) {
     queryKey: ["payday_plans", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("payday_plans").select("*").order("pay_date", { ascending: false });
+      const { data, error } = await supabase
+        .from("payday_plans")
+        .select("*")
+        .order("pay_date", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as import("./types").PaydayPlan[];
     },
@@ -145,7 +190,11 @@ export function usePlanItems(planId: string | undefined) {
     queryKey: ["payday_plan_items", planId],
     enabled: !!planId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("payday_plan_items").select("*").eq("plan_id", planId!).order("sort_order");
+      const { data, error } = await supabase
+        .from("payday_plan_items")
+        .select("*")
+        .eq("plan_id", planId!)
+        .order("sort_order");
       if (error) throw error;
       return (data ?? []) as unknown as import("./types").PaydayPlanItem[];
     },
@@ -157,7 +206,11 @@ export function useNotificationLog(userId: string | undefined) {
     queryKey: ["notification_log", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("notification_log").select("*").order("created_at", { ascending: false }).limit(100);
+      const { data, error } = await supabase
+        .from("notification_log")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
       if (error) throw error;
       return (data ?? []) as unknown as import("./types").NotificationEntry[];
     },
@@ -169,7 +222,11 @@ export function useAuditLog(userId: string | undefined) {
     queryKey: ["audit_log", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("audit_log").select("*").order("created_at", { ascending: false }).limit(200);
+      const { data, error } = await supabase
+        .from("audit_log")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
       if (error) throw error;
       return (data ?? []) as unknown as import("./types").AuditEntry[];
     },
