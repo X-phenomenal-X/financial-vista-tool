@@ -13,6 +13,7 @@ import {
   Plus,
   ShieldCheck,
   Sparkles,
+  TrendingDown,
   WalletCards,
   X,
 } from "lucide-react";
@@ -25,7 +26,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/bill-calendar")({
-  head: () => ({ meta: [{ title: "Bill calendar — Wealthpilot" }] }),
+  head: () => ({
+    meta: [
+      { title: "Bill calendar — Wealthpilot" },
+      {
+        name: "description",
+        content: "See upcoming bills, payment readiness, and projected cash before money leaves your accounts.",
+      },
+    ],
+  }),
   component: BillCalendarPage,
 });
 
@@ -109,6 +118,16 @@ function BillCalendarPage() {
     const days = daysUntilDate(bill.next_due_date);
     return days >= 0 && days <= 7;
   }).length;
+  const nextBill = activeBills.find((bill) => daysUntilDate(bill.next_due_date) >= 0);
+  const manualThisWeek = activeBills.filter((bill) => {
+    const days = daysUntilDate(bill.next_due_date);
+    return !bill.autopay && days >= 0 && days <= 7;
+  }).length;
+  const autopayTotal = monthBills
+    .filter((bill) => bill.autopay)
+    .reduce((sum, bill) => sum + bill.amount, 0);
+  const coverage = totalDue > 0 ? currentCash / totalDue : currentCash > 0 ? Infinity : 0;
+  const coveragePercent = totalDue > 0 ? Math.min(100, Math.max(0, (currentCash / totalDue) * 100)) : 100;
   const risk = lowestProjected < 0 ? "risk" : lowestProjected < 500 ? "tight" : "safe";
 
   function displayMoney(value: number) {
@@ -192,28 +211,43 @@ function BillCalendarPage() {
     );
   }
 
-  return (
-    <div className="space-y-6 pb-10">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">Your upcoming cash-flow timeline</p>
-          <h1 className="font-display text-3xl">Bill calendar</h1>
+  if (ctx.error || billsQuery.error) {
+    return (
+      <div className="mx-auto flex min-h-[62vh] max-w-lg items-center justify-center py-10">
+        <div className="w-full rounded-[2rem] border border-destructive/20 bg-card p-6 text-center shadow-elevated sm:p-8">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-destructive/10 text-destructive"><AlertTriangle className="h-6 w-6" /></div>
+          <div className="mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-destructive">Live bills interrupted</div>
+          <h1 className="mt-2 font-display text-3xl">Your timeline did not refresh</h1>
+          <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted-foreground">Wealthpilot could not load the financial sources used for bill readiness. Your saved records have not been changed.</p>
+          <Button className="mt-6 w-full rounded-2xl sm:w-auto" onClick={() => { void ctx.refetch(); void billsQuery.refetch(); }}>Try again</Button>
         </div>
-        <Button className="rounded-2xl bg-violet-grad shadow-card transition active:scale-95" onClick={() => setShowAdd((value) => !value)}>
-          {showAdd ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}{showAdd ? "Close" : "Add bill"}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-7 pb-10 sm:space-y-8">
+      <header className="flex items-start justify-between gap-4 pt-1">
+        <div className="min-w-0">
+          <div className="eyebrow">Payment readiness · {new Intl.DateTimeFormat("en-CA", { month: "long", day: "numeric" }).format(new Date())}</div>
+          <h1 className="mt-2 font-display text-[2.25rem] leading-[0.98] tracking-[-0.035em] sm:text-5xl">Bills, under control.</h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Know what leaves next, what needs your attention, and how much cash remains after it does.</p>
+        </div>
+        <Button size="icon" className="mt-1 shrink-0 rounded-2xl bg-violet-grad shadow-card" onClick={() => setShowAdd((value) => !value)} aria-label={showAdd ? "Close add bill form" : "Add bill"}>
+          {showAdd ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>
       </header>
 
-      <section className="relative overflow-hidden rounded-[2rem] border border-accent/20 bg-gradient-to-br from-card via-card to-accent/15 p-6 shadow-elevated">
+      <section className="group relative overflow-hidden rounded-[2rem] border border-white/[0.11] bg-hero p-5 shadow-elevated sm:p-7 lg:p-8">
         <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-accent/20 blur-3xl" />
         <div className="absolute -bottom-24 -left-16 h-48 w-48 rounded-full bg-violet-500/10 blur-3xl" />
         <div className="relative">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground"><Sparkles className="h-4 w-4 text-accent" />Bills this month</div>
+            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"><Sparkles className="h-4 w-4 text-accent" />Committed this month</div>
             <button onClick={() => setShowAmounts((value) => !value)} className="grid h-9 w-9 place-items-center rounded-full border border-border/70 bg-background/40 text-muted-foreground backdrop-blur transition hover:text-foreground active:scale-95" aria-label={showAmounts ? "Hide balances" : "Show balances"}>{showAmounts ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
           </div>
           <div className="mt-4 font-display text-5xl tabular-nums tracking-tight">{displayMoney(totalDue)}</div>
-          <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><span>{monthBills.length} scheduled payments</span><span>·</span><span>{dueThisWeek} due this week</span></div>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground"><span>{monthBills.length} scheduled payments</span><span>·</span><span>{dueThisWeek} due this week</span>{nextBill && <><span>·</span><span>Next: {nextBill.name}</span></>}</div>
 
           <div className="mt-6 grid grid-cols-3 gap-2">
             <div className="rounded-2xl border border-white/5 bg-background/35 p-3 backdrop-blur"><div className="text-[10px] uppercase tracking-wider text-muted-foreground">Cash now</div><div className="mt-1 truncate font-display text-xl">{displayMoney(currentCash)}</div></div>
@@ -225,7 +259,18 @@ function BillCalendarPage() {
             {risk === "safe" ? <ShieldCheck className="h-5 w-5 shrink-0" /> : <AlertTriangle className="h-5 w-5 shrink-0" />}
             <div><span className="font-semibold capitalize">{risk}</span><span className="text-current/80"> · {risk === "safe" ? "Your selected timeline stays above the safety zone." : risk === "tight" ? "Your projected balance gets close to the safety buffer." : "Upcoming bills may push the projected balance below zero."}</span></div>
           </div>
+
+          <div className="mt-5">
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground"><span>Monthly bill coverage</span><span>{Number.isFinite(coverage) ? `${coverage.toFixed(1)}×` : "Fully covered"}</span></div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.08]"><div className={`h-full rounded-full transition-all duration-700 ${coverage >= 1 ? "bg-success" : coverage >= 0.75 ? "bg-warning" : "bg-destructive"}`} style={{ width: `${coveragePercent}%` }} /></div>
+          </div>
         </div>
+      </section>
+
+      <section className="grid gap-3 sm:grid-cols-3">
+        <div className={`rounded-3xl border p-4 ${overdueCount > 0 ? "border-destructive/25 bg-destructive/8" : "border-border bg-card"}`}><div className="flex items-center justify-between"><AlertTriangle className={`h-5 w-5 ${overdueCount > 0 ? "text-destructive" : "text-muted-foreground"}`} /><span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Attention</span></div><div className="mt-4 font-display text-2xl">{overdueCount || "Clear"}</div><p className="mt-1 text-xs text-muted-foreground">{overdueCount ? `${overdueCount} overdue payment${overdueCount === 1 ? "" : "s"}` : "No overdue bills"}</p></div>
+        <div className={`rounded-3xl border p-4 ${manualThisWeek > 0 ? "border-warning/25 bg-warning/8" : "border-border bg-card"}`}><div className="flex items-center justify-between"><Clock3 className="h-5 w-5 text-warning" /><span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Manual</span></div><div className="mt-4 font-display text-2xl">{manualThisWeek}</div><p className="mt-1 text-xs text-muted-foreground">Need action within 7 days</p></div>
+        <div className="rounded-3xl border border-border bg-card p-4"><div className="flex items-center justify-between"><ShieldCheck className="h-5 w-5 text-success" /><span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Auto-pay</span></div><div className="mt-4 font-display text-2xl">{displayMoney(autopayTotal)}</div><p className="mt-1 text-xs text-muted-foreground">Scheduled this month</p></div>
       </section>
 
       {showAdd && (
@@ -303,6 +348,10 @@ function BillCalendarPage() {
         <div className="rounded-3xl border border-border bg-card p-5 transition hover:border-accent/30"><CalendarDays className="h-5 w-5 text-accent" /><div className="mt-4 text-xs text-muted-foreground">Next 30 days</div><div className="font-display text-3xl">{activeBills.filter((bill) => { const days = daysUntilDate(bill.next_due_date); return days >= 0 && days <= 30; }).length}</div></div>
         <div className="rounded-3xl border border-border bg-card p-5 transition hover:border-accent/30"><CircleDollarSign className="h-5 w-5 text-warning" /><div className="mt-4 text-xs text-muted-foreground">Auto-pay bills</div><div className="font-display text-3xl">{activeBills.filter((bill) => bill.autopay).length}</div></div>
       </section>
+
+      <Link to="/subscriptions" className="group flex items-center justify-between rounded-3xl border border-border bg-card p-5 transition hover:border-accent/35 active:scale-[0.99]">
+        <div className="flex items-start gap-3"><div className="grid h-10 w-10 place-items-center rounded-2xl bg-accent/10 text-accent"><TrendingDown className="h-5 w-5" /></div><div><div className="font-semibold">Trim recurring spend</div><div className="mt-1 text-xs text-muted-foreground">Review subscription cost and renewal concentration.</div></div></div><ArrowRight className="h-5 w-5 text-accent transition-transform group-hover:translate-x-0.5" />
+      </Link>
 
       <section className="rounded-3xl border border-border bg-card p-5 text-sm text-muted-foreground"><div className="flex items-start gap-3"><Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-accent" /><div><div className="font-medium text-foreground">Built for payment readiness</div><p className="mt-1">The timeline starts with current cash, subtracts each saved recurring payment, and highlights when the balance enters a tight or risky zone.</p></div></div></section>
     </div>

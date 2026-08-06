@@ -2,15 +2,20 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  AlertTriangle,
   ArrowRight,
   CalendarClock,
   ChevronDown,
   CreditCard,
+  Eye,
+  EyeOff,
   Pause,
   Play,
   Plus,
+  RefreshCw,
   Search,
   Sparkles,
+  TrendingDown,
   Trash2,
   X,
   Zap,
@@ -24,7 +29,15 @@ import { Label } from "@/components/ui/label";
 import { money } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/subscriptions")({
-  head: () => ({ meta: [{ title: "Subscriptions — Wealthpilot" }] }),
+  head: () => ({
+    meta: [
+      { title: "Subscriptions — Wealthpilot" },
+      {
+        name: "description",
+        content: "Understand recurring subscription cost, upcoming renewals, and the easiest places to trim spend.",
+      },
+    ],
+  }),
   component: SubscriptionsPage,
 });
 
@@ -72,6 +85,7 @@ function SubscriptionsPage() {
   const [filter, setFilter] = useState<Filter>("active");
   const [search, setSearch] = useState("");
   const [costMode, setCostMode] = useState<"monthly" | "annual">("monthly");
+  const [showAmounts, setShowAmounts] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", amount: "", cadence: "monthly", next_due_date: "", category: "Entertainment", autopay: true });
@@ -144,7 +158,7 @@ function SubscriptionsPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const rows = subscriptions.data ?? [];
+  const rows = useMemo(() => subscriptions.data ?? [], [subscriptions.data]);
   const active = rows.filter((item) => item.is_active);
   const monthly = useMemo(() => active.reduce((sum, item) => sum + Number(item.amount) * monthlyFactor[item.cadence], 0), [active]);
   const annual = monthly * 12;
@@ -160,6 +174,22 @@ function SubscriptionsPage() {
     });
     return [...totals.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "None yet";
   }, [active]);
+  const categoryTotals = useMemo(() => {
+    const totals = new Map<string, number>();
+    active.forEach((item) => {
+      const category = item.category || "Uncategorized";
+      totals.set(category, (totals.get(category) || 0) + Number(item.amount) * monthlyFactor[item.cadence]);
+    });
+    return [...totals.entries()].sort((a, b) => b[1] - a[1]);
+  }, [active]);
+  const largestSubscription = useMemo(
+    () => [...active].sort((a, b) => Number(b.amount) * monthlyFactor[b.cadence] - Number(a.amount) * monthlyFactor[a.cadence])[0],
+    [active],
+  );
+  const largestMonthlyCost = largestSubscription ? Number(largestSubscription.amount) * monthlyFactor[largestSubscription.cadence] : 0;
+  const topCategoryMonthly = categoryTotals[0]?.[1] || 0;
+  const topCategoryShare = monthly > 0 ? Math.round((topCategoryMonthly / monthly) * 100) : 0;
+  const manualRenewalsSoon = nextSevenDays.filter((item) => !item.autopay).length;
 
   const visibleRows = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -181,39 +211,66 @@ function SubscriptionsPage() {
     );
   }
 
-  return (
-    <div className="space-y-6 pb-10">
-      <header className="flex items-end justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted-foreground">Recurring spending control</p>
-          <h1 className="font-display text-3xl">Subscriptions</h1>
+  if (subscriptions.error) {
+    return (
+      <div className="mx-auto flex min-h-[62vh] max-w-lg items-center justify-center py-10">
+        <div className="w-full rounded-[2rem] border border-destructive/20 bg-card p-6 text-center shadow-elevated sm:p-8">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-destructive/10 text-destructive"><AlertTriangle className="h-6 w-6" /></div>
+          <div className="mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-destructive">Subscriptions unavailable</div>
+          <h1 className="mt-2 font-display text-3xl">Recurring spend did not refresh</h1>
+          <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted-foreground">Wealthpilot could not load your subscription records. Nothing has been changed or removed.</p>
+          <Button className="mt-6 w-full rounded-2xl sm:w-auto" onClick={() => void subscriptions.refetch()}><RefreshCw className="mr-2 h-4 w-4" />Try again</Button>
         </div>
-        <Button className="rounded-2xl bg-violet-grad shadow-card transition active:scale-95" onClick={() => setOpen((value) => !value)}>
-          {open ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}{open ? "Close" : "Add"}
+      </div>
+    );
+  }
+
+  const displayMoney = (value: number) => showAmounts ? money(value) : "••••";
+
+  return (
+    <div className="space-y-7 pb-10 sm:space-y-8">
+      <header className="flex items-start justify-between gap-4 pt-1">
+        <div className="min-w-0">
+          <div className="eyebrow">Recurring spend · {active.length} active</div>
+          <h1 className="mt-2 font-display text-[2.25rem] leading-[0.98] tracking-[-0.035em] sm:text-5xl">Keep the useful. Cut the drift.</h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">See what renews next, where recurring cost clusters, and the easiest spend to reconsider.</p>
+        </div>
+        <Button size="icon" className="mt-1 shrink-0 rounded-2xl bg-violet-grad shadow-card" onClick={() => setOpen((value) => !value)} aria-label={open ? "Close add subscription form" : "Add subscription"}>
+          {open ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>
       </header>
 
-      <section className="relative overflow-hidden rounded-[2rem] border border-accent/20 bg-gradient-to-br from-card via-card to-accent/15 p-6 shadow-elevated">
+      <section className="group relative overflow-hidden rounded-[2rem] border border-white/[0.11] bg-hero p-5 shadow-elevated sm:p-7 lg:p-8">
         <div className="absolute -right-16 -top-20 h-52 w-52 rounded-full bg-accent/20 blur-3xl" />
         <div className="absolute -bottom-24 -left-20 h-48 w-48 rounded-full bg-violet-500/10 blur-3xl" />
         <div className="relative">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground"><Sparkles className="h-4 w-4 text-accent" />Recurring cost</div>
-            <div className="flex rounded-full border border-border/70 bg-background/40 p-1 text-xs backdrop-blur">
+            <div className="flex items-center gap-2"><button type="button" onClick={() => setShowAmounts((value) => !value)} className="grid h-9 w-9 place-items-center rounded-full border border-border/70 bg-background/40 text-muted-foreground backdrop-blur" aria-label={showAmounts ? "Hide subscription costs" : "Show subscription costs"}>{showAmounts ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button><div className="flex rounded-full border border-border/70 bg-background/40 p-1 text-xs backdrop-blur">
               {(["monthly", "annual"] as const).map((mode) => (
                 <button key={mode} onClick={() => setCostMode(mode)} className={`rounded-full px-3 py-1.5 capitalize transition ${costMode === mode ? "bg-foreground text-background shadow-sm" : "text-muted-foreground"}`}>{mode}</button>
               ))}
-            </div>
+            </div></div>
           </div>
-          <div className="mt-4 font-display text-5xl tabular-nums tracking-tight">{money(costMode === "monthly" ? monthly : annual)}</div>
-          <div className="mt-2 text-sm text-muted-foreground">{costMode === "monthly" ? `${money(annual)} committed per year` : `${money(monthly)} average per month`}</div>
+          <div className="mt-4 font-display text-5xl tabular-nums tracking-tight">{displayMoney(costMode === "monthly" ? monthly : annual)}</div>
+          <div className="mt-2 text-sm text-muted-foreground">{costMode === "monthly" ? `${displayMoney(annual)} committed per year` : `${displayMoney(monthly)} average per month`}</div>
           <div className="mt-6 grid grid-cols-3 gap-2">
             <div className="rounded-2xl border border-white/5 bg-background/35 p-3 backdrop-blur"><div className="text-[10px] uppercase tracking-wider text-muted-foreground">Active</div><div className="mt-1 font-display text-2xl">{active.length}</div></div>
             <div className="rounded-2xl border border-white/5 bg-background/35 p-3 backdrop-blur"><div className="text-[10px] uppercase tracking-wider text-muted-foreground">This week</div><div className="mt-1 font-display text-2xl">{nextSevenDays.length}</div></div>
             <div className="rounded-2xl border border-white/5 bg-background/35 p-3 backdrop-blur"><div className="text-[10px] uppercase tracking-wider text-muted-foreground">Top category</div><div className="mt-1 truncate text-sm font-semibold">{topCategory}</div></div>
           </div>
+          <div className="mt-5 rounded-2xl border border-white/[0.08] bg-background/30 p-3.5 backdrop-blur">
+            <div className="flex items-start gap-3"><TrendingDown className="mt-0.5 h-5 w-5 shrink-0 text-success" /><div><div className="text-sm font-semibold">Fastest trim: {largestSubscription?.name || "add your first subscription"}</div><p className="mt-1 text-xs leading-5 text-muted-foreground">{largestSubscription ? `Your largest recurring service is ${displayMoney(largestMonthlyCost)}/mo (${displayMoney(largestMonthlyCost * 12)}/yr). Pause it in one tap if it is no longer earning its place.` : "Once subscriptions are saved, Wealthpilot will surface the highest-impact place to review."}</p></div></div>
+          </div>
         </div>
       </section>
+
+      {active.length > 0 && (
+        <section className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-3xl border border-border bg-card p-5 shadow-card"><div className="flex items-center justify-between"><div><div className="eyebrow">Spend concentration</div><h2 className="mt-2 font-semibold">{topCategory}</h2></div><div className="font-display text-3xl text-accent">{topCategoryShare}%</div></div><div className="mt-4 h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-accent transition-all duration-700" style={{ width: `${topCategoryShare}%` }} /></div><p className="mt-3 text-xs leading-5 text-muted-foreground">{displayMoney(topCategoryMonthly)} of your normalized monthly subscription spend sits here.</p></div>
+          <div className={`rounded-3xl border p-5 shadow-card ${manualRenewalsSoon > 0 ? "border-warning/25 bg-warning/8" : "border-border bg-card"}`}><div className="flex items-center justify-between"><div><div className="eyebrow">Next 7 days</div><h2 className="mt-2 font-semibold">Renewal attention</h2></div><CalendarClock className={`h-6 w-6 ${manualRenewalsSoon > 0 ? "text-warning" : "text-success"}`} /></div><div className="mt-4 font-display text-3xl">{nextSevenDays.length}</div><p className="mt-1 text-xs leading-5 text-muted-foreground">{manualRenewalsSoon > 0 ? `${manualRenewalsSoon} upcoming renewal${manualRenewalsSoon === 1 ? " is" : "s are"} manual.` : nextSevenDays.length ? "Every upcoming renewal is on auto-pay." : "No subscription charges are expected this week."}</p></div>
+        </section>
+      )}
 
       {nextSevenDays.length > 0 && (
         <section>
@@ -223,7 +280,7 @@ function SubscriptionsPage() {
               const days = daysUntilDate(item.next_due_date);
               return (
                 <button key={item.id} onClick={() => setExpandedId(item.id)} className="min-w-[76%] snap-start rounded-3xl border border-warning/20 bg-warning/5 p-4 text-left transition hover:border-warning/40 active:scale-[0.98] sm:min-w-[45%]">
-                  <div className="flex items-center justify-between gap-3"><div className="truncate font-semibold">{item.name}</div><div className="font-display text-lg">{money(item.amount)}</div></div>
+                  <div className="flex items-center justify-between gap-3"><div className="truncate font-semibold">{item.name}</div><div className="font-display text-lg">{displayMoney(Number(item.amount))}</div></div>
                   <div className="mt-3 flex items-center justify-between text-xs"><span className="rounded-full bg-warning/15 px-2 py-1 text-warning">{renewalLabel(days)}</span><span className="text-muted-foreground">{item.autopay ? "Auto-pay" : "Manual"}</span></div>
                 </button>
               );
@@ -277,7 +334,7 @@ function SubscriptionsPage() {
                     <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${urgent ? "bg-warning/15 text-warning" : "bg-accent/10 text-accent"}`}><CreditCard className="h-5 w-5" /></div>
                     <div className="min-w-0"><div className="truncate font-semibold">{item.name}</div><div className="mt-1 flex flex-wrap gap-1.5 text-[10px]"><span className="rounded-full bg-secondary px-2 py-1 text-muted-foreground">{item.category || "Uncategorized"}</span><span className={`rounded-full px-2 py-1 ${item.autopay ? "bg-emerald-500/10 text-emerald-400" : "bg-secondary text-muted-foreground"}`}>{item.autopay ? "Auto-pay" : "Manual"}</span>{!item.is_active && <span className="rounded-full bg-warning/10 px-2 py-1 text-warning">Paused</span>}</div></div>
                   </div>
-                  <div className="shrink-0 text-right"><div className="font-display text-2xl tabular-nums">{money(Number(item.amount))}</div><div className="text-xs capitalize text-muted-foreground">{item.cadence}</div></div>
+                    <div className="shrink-0 text-right"><div className="font-display text-2xl tabular-nums">{displayMoney(Number(item.amount))}</div><div className="text-xs capitalize text-muted-foreground">{item.cadence}</div></div>
                 </div>
                 <div className="mt-5 flex items-center justify-between gap-3 border-t border-border/70 pt-4 text-xs"><span className={urgent ? "font-medium text-warning" : "text-muted-foreground"}>{renewalLabel(days)}</span><span className="flex items-center gap-1 text-muted-foreground">Details <ChevronDown className={`h-4 w-4 transition ${expanded ? "rotate-180" : ""}`} /></span></div>
               </button>
@@ -286,7 +343,7 @@ function SubscriptionsPage() {
                 <div className="border-t border-border bg-secondary/15 p-5">
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="rounded-2xl bg-background/60 p-3"><CalendarClock className="mb-2 h-4 w-4 text-accent" /><div className="text-xs text-muted-foreground">Next renewal</div><div className="mt-1 font-medium">{new Date(`${item.next_due_date}T12:00:00`).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" })}</div></div>
-                    <div className="rounded-2xl bg-background/60 p-3"><Sparkles className="mb-2 h-4 w-4 text-accent" /><div className="text-xs text-muted-foreground">True monthly cost</div><div className="mt-1 font-medium">{money(monthlyCost)}</div></div>
+                    <div className="rounded-2xl bg-background/60 p-3"><Sparkles className="mb-2 h-4 w-4 text-accent" /><div className="text-xs text-muted-foreground">True monthly cost</div><div className="mt-1 font-medium">{displayMoney(monthlyCost)}</div></div>
                   </div>
                   <div className="mt-4 flex gap-2">
                     <Button size="sm" variant="secondary" className="flex-1 rounded-xl" disabled={updateActive.isPending} onClick={() => updateActive.mutate({ id: item.id, active: !item.is_active })}>{item.is_active ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}{item.is_active ? "Pause" : "Resume"}</Button>
