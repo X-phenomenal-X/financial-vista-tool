@@ -1,11 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Outlet,
+  HeadContent,
   Link,
+  Outlet,
+  Scripts,
   createRootRouteWithContext,
   useRouter,
-  HeadContent,
-  Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -17,17 +17,18 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-violet-grad font-display text-2xl shadow-elevated">W</div>
+        <h1 className="mt-6 font-display text-6xl text-foreground">404</h1>
+        <h2 className="mt-3 text-xl font-semibold text-foreground">This route is off course</h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          The page does not exist or has moved to another part of your Wealthpilot workspace.
         </p>
         <div className="mt-6">
           <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            to="/dashboard"
+            className="inline-flex items-center justify-center rounded-2xl bg-violet-grad px-5 py-3 text-sm font-semibold text-primary-foreground shadow-card transition hover:scale-[1.02] active:scale-95"
           >
-            Go home
+            Return to dashboard
           </Link>
         </div>
       </div>
@@ -44,12 +45,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+      <div className="max-w-md rounded-3xl border border-border bg-card p-8 text-center shadow-elevated">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-destructive/12 text-xl text-destructive">!</div>
+        <h1 className="mt-5 font-display text-2xl tracking-tight text-foreground">This page did not load</h1>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          Something interrupted the request. Try again or return to your dashboard.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -57,15 +57,15 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-2xl bg-violet-grad px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:scale-[1.02] active:scale-95"
           >
             Try again
           </button>
           <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            href="/dashboard"
+            className="inline-flex items-center justify-center rounded-2xl border border-input bg-background px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-secondary"
           >
-            Go home
+            Go to dashboard
           </a>
         </div>
       </div>
@@ -77,21 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Money Map — private finance" },
-      { name: "description", content: "Abhi's private personal finance dashboard: debt payoff plan, budget, goals, and a built-in coach." },
-      { name: "author", content: "Money Map" },
-      { name: "theme-color", content: "#1a132b" },
-      { property: "og:title", content: "Money Map" },
-      { property: "og:description", content: "Private personal finance dashboard." },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { title: "Wealthpilot — Private Finance OS" },
+      { name: "description", content: "A private financial command center for cash flow, budgets, debt payoff, goals, and smarter decisions." },
+      { name: "author", content: "Wealthpilot" },
+      { name: "theme-color", content: "#14101f" },
+      { property: "og:title", content: "Wealthpilot" },
+      { property: "og:description", content: "Your private financial command center." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -106,7 +103,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <HeadContent />
       </head>
@@ -124,7 +121,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <Toaster theme="dark" position="top-center" />
+      <Toaster theme="dark" position="top-center" richColors />
     </QueryClientProvider>
   );
 }
