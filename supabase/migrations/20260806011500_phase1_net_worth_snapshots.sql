@@ -34,7 +34,13 @@ create policy "Users manage own net worth snapshots"
 on public.net_worth_snapshots
 for all
 to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id);
+
+-- Net worth snapshots are private to signed-in users. Explicit grants keep the
+-- Data API surface correct even when project-level default privileges change.
+revoke all on table public.net_worth_snapshots from anon;
+revoke all on table public.net_worth_snapshots from authenticated;
+grant select, insert, update on table public.net_worth_snapshots to authenticated;
 
 comment on table public.net_worth_snapshots is 'Daily per-user asset, liability, and net worth history used by Wealthpilot analytics.';
