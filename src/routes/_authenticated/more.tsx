@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  PieChart,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
@@ -16,8 +17,8 @@ import { useNavigate } from "@tanstack/react-router";
 export const Route = createFileRoute("/_authenticated/more")({
   head: () => ({
     meta: [
-      { title: "More — Money Map" },
-      { name: "description", content: "Payday planning, payoff simulation, debts, goals, reminders, uploads, and settings." },
+      { title: "More — Wealthpilot" },
+      { name: "description", content: "Net worth, payday planning, payoff simulation, debts, goals, reminders, uploads, and settings." },
     ],
   }),
   component: MorePage,
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/more")({
 function MorePage() {
   const navigate = useNavigate();
   const items = [
+    { to: "/net-worth", label: "Net worth analytics", icon: PieChart },
     { to: "/payday", label: "Payday planner", icon: CalendarDays },
     { to: "/simulator", label: "Debt payoff simulator", icon: Calculator },
     { to: "/debts", label: "Debts", icon: CreditCard },
