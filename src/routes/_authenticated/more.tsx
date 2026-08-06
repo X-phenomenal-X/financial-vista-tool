@@ -10,6 +10,7 @@ import {
   LogOut,
   ChevronRight,
   PieChart,
+  RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/more")({
   head: () => ({
     meta: [
       { title: "More — Wealthpilot" },
-      { name: "description", content: "Net worth, payday planning, payoff simulation, debts, goals, reminders, uploads, and settings." },
+      { name: "description", content: "Net worth, subscriptions, payday planning, payoff simulation, debts, goals, reminders, uploads, and settings." },
     ],
   }),
   component: MorePage,
@@ -28,6 +29,7 @@ function MorePage() {
   const navigate = useNavigate();
   const items = [
     { to: "/net-worth", label: "Net worth analytics", icon: PieChart },
+    { to: "/subscriptions", label: "Subscription tracker", icon: RefreshCw },
     { to: "/payday", label: "Payday planner", icon: CalendarDays },
     { to: "/simulator", label: "Debt payoff simulator", icon: Calculator },
     { to: "/debts", label: "Debts", icon: CreditCard },
