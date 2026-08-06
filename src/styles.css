@@ -4,20 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -66,58 +52,59 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --font-display: "Fraunces", ui-serif, Georgia, serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 :root {
-  /* Money Map — premium dark plum/navy theme (single mode; app is dark-only) */
   --radius: 1rem;
-  --background: oklch(0.15 0.03 285);
-  --foreground: oklch(0.965 0.008 280);
-  --card: oklch(0.19 0.033 285);
-  --card-foreground: oklch(0.965 0.008 280);
-  --popover: oklch(0.19 0.033 285);
-  --popover-foreground: oklch(0.965 0.008 280);
-  --primary: oklch(0.62 0.18 295);
-  --primary-foreground: oklch(0.99 0.005 285);
-  --primary-glow: oklch(0.72 0.15 300);
-  --secondary: oklch(0.24 0.035 285);
-  --secondary-foreground: oklch(0.965 0.008 280);
-  --muted: oklch(0.22 0.03 285);
-  --muted-foreground: oklch(0.72 0.02 280);
-  --accent: oklch(0.82 0.14 165);
-  --accent-foreground: oklch(0.18 0.05 165);
+  --background: oklch(0.135 0.028 286);
+  --foreground: oklch(0.972 0.008 282);
+  --card: oklch(0.185 0.032 286 / 0.92);
+  --card-foreground: oklch(0.972 0.008 282);
+  --popover: oklch(0.19 0.035 286 / 0.98);
+  --popover-foreground: oklch(0.972 0.008 282);
+  --primary: oklch(0.65 0.19 296);
+  --primary-foreground: oklch(0.99 0.004 285);
+  --primary-glow: oklch(0.75 0.15 304);
+  --secondary: oklch(0.235 0.035 286 / 0.86);
+  --secondary-foreground: oklch(0.96 0.008 282);
+  --muted: oklch(0.215 0.03 286 / 0.82);
+  --muted-foreground: oklch(0.72 0.022 282);
+  --accent: oklch(0.82 0.145 166);
+  --accent-foreground: oklch(0.17 0.045 166);
   --success: oklch(0.78 0.15 160);
   --success-foreground: oklch(0.15 0.04 160);
-  --warning: oklch(0.82 0.14 75);
+  --warning: oklch(0.83 0.15 77);
   --warning-foreground: oklch(0.2 0.05 75);
   --destructive: oklch(0.68 0.22 20);
   --destructive-foreground: oklch(0.99 0.005 20);
-  --border: oklch(0.28 0.03 285);
-  --input: oklch(0.26 0.03 285);
-  --ring: oklch(0.62 0.18 295);
-  --chart-1: oklch(0.62 0.18 295);
-  --chart-2: oklch(0.78 0.15 160);
-  --chart-3: oklch(0.82 0.14 75);
-  --chart-4: oklch(0.68 0.22 20);
-  --chart-5: oklch(0.72 0.15 220);
-  --sidebar: oklch(0.13 0.028 285);
-  --sidebar-foreground: oklch(0.94 0.01 280);
-  --sidebar-primary: oklch(0.62 0.18 295);
+  --border: oklch(0.29 0.032 286 / 0.72);
+  --input: oklch(0.255 0.032 286 / 0.84);
+  --ring: oklch(0.68 0.17 297);
+  --chart-1: oklch(0.66 0.19 296);
+  --chart-2: oklch(0.79 0.15 160);
+  --chart-3: oklch(0.83 0.15 77);
+  --chart-4: oklch(0.69 0.21 20);
+  --chart-5: oklch(0.73 0.15 220);
+  --sidebar: oklch(0.115 0.025 286 / 0.94);
+  --sidebar-foreground: oklch(0.95 0.01 282);
+  --sidebar-primary: oklch(0.65 0.19 296);
   --sidebar-primary-foreground: oklch(0.99 0.005 285);
-  --sidebar-accent: oklch(0.22 0.035 285);
-  --sidebar-accent-foreground: oklch(0.94 0.01 280);
-  --sidebar-border: oklch(0.25 0.03 285);
-  --sidebar-ring: oklch(0.62 0.18 295);
-  --gradient-hero: linear-gradient(135deg, oklch(0.32 0.09 295) 0%, oklch(0.22 0.05 285) 60%, oklch(0.18 0.04 300) 100%);
-  --gradient-violet: linear-gradient(135deg, oklch(0.55 0.2 295), oklch(0.68 0.16 305));
-  --gradient-mint: linear-gradient(135deg, oklch(0.78 0.15 160), oklch(0.72 0.14 190));
-  --shadow-card: 0 8px 24px -12px oklch(0 0 0 / 0.55);
-  --shadow-elevated: 0 20px 40px -18px oklch(0 0 0 / 0.7);
+  --sidebar-accent: oklch(0.225 0.035 286 / 0.8);
+  --sidebar-accent-foreground: oklch(0.95 0.01 282);
+  --sidebar-border: oklch(0.25 0.03 286 / 0.64);
+  --sidebar-ring: oklch(0.66 0.18 296);
+  --gradient-hero: linear-gradient(135deg, oklch(0.35 0.105 296) 0%, oklch(0.245 0.058 288) 54%, oklch(0.18 0.042 302) 100%);
+  --gradient-violet: linear-gradient(135deg, oklch(0.58 0.215 296), oklch(0.71 0.165 308));
+  --gradient-mint: linear-gradient(135deg, oklch(0.79 0.155 160), oklch(0.73 0.14 190));
+  --gradient-surface: linear-gradient(145deg, oklch(0.205 0.036 286 / 0.94), oklch(0.17 0.028 286 / 0.86));
+  --shadow-card: 0 1px 0 oklch(1 0 0 / 0.035) inset, 0 12px 34px -20px oklch(0 0 0 / 0.72);
+  --shadow-elevated: 0 1px 0 oklch(1 0 0 / 0.05) inset, 0 28px 70px -28px oklch(0 0 0 / 0.88);
+  --shadow-glow: 0 0 45px -16px oklch(0.65 0.19 296 / 0.7);
 }
 
 .dark {
-  /* Dark mode intentionally inherits :root — this app is dark-only. */
+  /* Wealthpilot is intentionally dark-first. */
 }
 
 @layer base {
@@ -125,20 +112,200 @@
     border-color: var(--color-border);
   }
 
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    background: var(--background);
+  }
+
   body {
-    background-color: var(--color-background);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    background:
+      radial-gradient(circle at 12% -10%, oklch(0.42 0.13 296 / 0.2), transparent 34rem),
+      radial-gradient(circle at 100% 8%, oklch(0.46 0.1 186 / 0.11), transparent 30rem),
+      linear-gradient(180deg, oklch(0.145 0.03 286), var(--background) 42%);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
-  html { color-scheme: dark; }
+
+  ::selection {
+    background: oklch(0.67 0.18 296 / 0.42);
+    color: var(--foreground);
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :is(button, a, input, select, textarea):focus-visible {
+    outline: 2px solid color-mix(in oklch, var(--ring) 80%, white 20%);
+    outline-offset: 3px;
+  }
+
+  input,
+  select,
+  textarea {
+    transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: color-mix(in oklch, var(--ring) 68%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 16%, transparent);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: oklch(0.5 0.04 286 / 0.42);
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.62 0.08 296 / 0.58);
+    background-clip: padding-box;
+  }
+}
+
+@layer components {
+  .app-shell {
+    isolation: isolate;
+  }
+
+  .app-shell::before {
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    content: "";
+    opacity: 0.22;
+    background-image:
+      linear-gradient(oklch(1 0 0 / 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(1 0 0 / 0.018) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(to bottom, black, transparent 72%);
+  }
+
+  .app-sidebar {
+    background:
+      linear-gradient(180deg, oklch(0.14 0.033 286 / 0.96), oklch(0.105 0.022 286 / 0.97)),
+      var(--sidebar);
+    box-shadow: 18px 0 70px -45px oklch(0 0 0 / 0.9);
+    backdrop-filter: blur(28px) saturate(125%);
+  }
+
+  .mobile-app-header {
+    background: linear-gradient(180deg, oklch(0.135 0.028 286 / 0.98), oklch(0.135 0.028 286 / 0.84) 72%, transparent);
+    backdrop-filter: blur(18px) saturate(130%);
+  }
+
+  .mobile-dock {
+    background: linear-gradient(180deg, oklch(0.215 0.035 286 / 0.9), oklch(0.165 0.027 286 / 0.94));
+  }
+
+  .app-page {
+    position: relative;
+  }
+
+  .app-page::before {
+    pointer-events: none;
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: -1;
+    height: 18rem;
+    content: "";
+    background: radial-gradient(ellipse at top, oklch(0.45 0.11 297 / 0.08), transparent 66%);
+  }
+
+  .page-transition {
+    animation: page-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .app-ambient {
+    pointer-events: none;
+    position: fixed;
+    z-index: -1;
+    border-radius: 999px;
+    filter: blur(90px);
+    opacity: 0.2;
+  }
+
+  .app-ambient-one {
+    left: 18%;
+    top: -10rem;
+    height: 30rem;
+    width: 30rem;
+    background: oklch(0.54 0.17 296);
+  }
+
+  .app-ambient-two {
+    bottom: -14rem;
+    right: -10rem;
+    height: 34rem;
+    width: 34rem;
+    background: oklch(0.58 0.12 180);
+    opacity: 0.12;
+  }
+
+  .quick-add-fab {
+    box-shadow: var(--shadow-elevated), var(--shadow-glow);
+  }
+
+  .app-page .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .app-page .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .app-page :is(section, article).bg-card,
+  .app-page :is(section, article)[class*="bg-card/"] {
+    background-image: var(--gradient-surface);
+    backdrop-filter: blur(18px) saturate(112%);
+  }
+
+  .app-page :is(button, a).transition,
+  .app-page :is(button, a)[class*="transition-"] {
+    will-change: transform;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
 }
 
 @utility font-display {
   font-family: var(--font-display);
   font-optical-sizing: auto;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 @utility bg-hero {
@@ -167,4 +334,37 @@
 
 @utility safe-top {
   padding-top: env(safe-area-inset-top, 0px);
+}
+
+@media (hover: hover) {
+  .app-page :is(article, section).shadow-card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-elevated);
+  }
+}
+
+@media (max-width: 1023px) {
+  .app-ambient-one {
+    left: -12rem;
+    top: -14rem;
+  }
+
+  .app-ambient-two {
+    right: -18rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
