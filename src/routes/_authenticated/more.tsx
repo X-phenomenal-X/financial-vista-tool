@@ -13,6 +13,7 @@ import {
   RefreshCw,
   CalendarClock,
   Activity,
+  Lightbulb,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/more")({
   head: () => ({
     meta: [
       { title: "More — Wealthpilot" },
-      { name: "description", content: "Notifications, financial health, net worth, subscriptions, bill calendar, payday planning, debts, goals, reminders, uploads, and settings." },
+      { name: "description", content: "Smart insights, notifications, financial health, net worth, subscriptions, bill calendar, payday planning, debts, goals, reminders, uploads, and settings." },
     ],
   }),
   component: MorePage,
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/more")({
 function MorePage() {
   const navigate = useNavigate();
   const items = [
+    { to: "/insights", label: "Smart insights", icon: Lightbulb },
     { to: "/notifications", label: "Notification center", icon: Bell },
     { to: "/financial-health", label: "Financial health", icon: Activity },
     { to: "/net-worth", label: "Net worth analytics", icon: PieChart },
