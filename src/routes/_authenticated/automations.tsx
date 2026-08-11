@@ -30,7 +30,7 @@ import type { Reminder } from "@/lib/types";
 export const Route = createFileRoute("/_authenticated/automations")({
   head: () => ({
     meta: [
-      { title: "Automations — Money Map" },
+      { title: "Automations — Wealthpilot" },
       { name: "description", content: "Smart financial reminders, browser notifications, and notification history." },
     ],
   }),

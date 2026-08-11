@@ -1,6 +1,6 @@
-# Money Map Pro
+# Wealthpilot
 
-Build a private, mobile-first personal finance web app for Abhi called “Money Map”. It must be easy to understand, visually clean, and work well on iPhone and desktop.
+Build a private, mobile-first personal finance web app for Abhi called “Wealthpilot”. It must be easy to understand, visually clean, and work well on iPhone and desktop.
 
 Core setup
 - Email login with cloud backup using Supabase authentication and database.

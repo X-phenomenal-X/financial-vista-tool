@@ -19,13 +19,14 @@ import { useAllData, useAuditLog, useProfile } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { buildBackup, download, restoreBackup, toCsv } from "@/lib/backup";
 import { logAudit } from "@/lib/audit";
+import { signOutCompletely } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — Money Map" },
+      { title: "Settings — Wealthpilot" },
       { name: "description", content: "Profile, secure backups, exports, restore, audit history, and privacy." },
     ],
   }),
@@ -51,7 +52,7 @@ function SettingsPage() {
     try {
       const backup = await buildBackup();
       download(`money-map-backup-${stamp()}.json`, JSON.stringify(backup, null, 2), "application/json");
-      await logAudit(user?.id, "backup", "exported", "Exported full Money Map JSON backup", {
+      await logAudit(user?.id, "backup", "exported", "Exported full Wealthpilot JSON backup", {
         version: backup.version,
         tables: Object.keys(backup.tables),
       });
@@ -77,7 +78,7 @@ function SettingsPage() {
     try {
       const parsed = JSON.parse(await file.text()) as { app?: string; version?: number; tables?: unknown };
       if (parsed.app !== "money-map" || !parsed.tables || typeof parsed.version !== "number") {
-        throw new Error("This is not a valid Money Map backup file.");
+        throw new Error("This is not a valid Wealthpilot backup file.");
       }
       if (!window.confirm("Restore missing records from this backup? Existing record IDs will be skipped and nothing will be overwritten.")) {
         return;
@@ -127,7 +128,7 @@ function SettingsPage() {
           <h2 className="text-sm font-semibold">Install & offline access</h2>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          Install Money Map to your home screen for full-screen use. Recently viewed screens stay readable without a connection; edits need you back online.
+          Install Wealthpilot to your home screen for full-screen use. Recently viewed screens stay readable without a connection; edits need you back online.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className={`rounded-full px-3 py-1 text-xs ${pwa.online ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>
@@ -142,7 +143,7 @@ function SettingsPage() {
               variant="secondary"
               onClick={async () => {
                 const accepted = await pwa.install();
-                if (accepted) toast.success("Money Map is installing");
+                if (accepted) toast.success("Wealthpilot is installing");
               }}
             >
               <Smartphone className="mr-2 h-4 w-4" />
@@ -150,9 +151,24 @@ function SettingsPage() {
             </Button>
           )}
         </div>
-        {!pwa.installed && !pwa.canInstall && (
+        {pwa.installMethod === "ios-safari" && (
           <div className="mt-3 rounded-xl bg-secondary/40 px-3 py-3 text-xs text-muted-foreground">
-            On iPhone: open in Safari, tap Share, then “Add to Home Screen”.
+            On iPhone: open Wealthpilot in Safari, tap the Share button, then choose “Add to Home
+            Screen”. iOS doesn’t offer a one-tap install button to websites.
+          </div>
+        )}
+        {pwa.installMethod === "manual" && (
+          <div className="mt-3 rounded-xl bg-secondary/40 px-3 py-3 text-xs text-muted-foreground">
+            Use your browser’s menu and look for “Install app” or “Add to Home screen”. If it isn’t
+            there, this browser doesn’t support installing web apps.
+          </div>
+        )}
+        {pwa.updateAvailable && (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-accent/25 bg-accent/10 px-3 py-3 text-xs">
+            <span className="text-foreground">A new version of Wealthpilot is ready.</span>
+            <Button size="sm" variant="secondary" onClick={pwa.applyUpdate}>
+              Reload now
+            </Button>
           </div>
         )}
       </section>
@@ -252,7 +268,7 @@ function SettingsPage() {
       <section className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-accent" /><h2 className="text-sm font-semibold">Data privacy</h2></div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Money Map is private and single-owner. Row-level security scopes financial records to the signed-in account. Uploaded documents require review and confirmation before any balance or transaction is saved.
+          Wealthpilot is private and single-owner. Row-level security scopes financial records to the signed-in account. Uploaded documents require review and confirmation before any balance or transaction is saved.
         </p>
       </section>
 
@@ -271,7 +287,7 @@ function SettingsPage() {
         variant="ghost"
         className="w-full text-destructive"
         onClick={async () => {
-          await supabase.auth.signOut();
+          await signOutCompletely();
           location.href = "/auth";
         }}
       >

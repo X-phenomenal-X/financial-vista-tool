@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bell, CheckCheck, CalendarClock, RefreshCw, CreditCard, WalletCards } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { money } from "@/lib/format";
 
@@ -30,10 +31,10 @@ function daysUntil(date: string) {
 function NotificationCenter() {
   const { user } = useAuth();
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<Tables<"notification_log">[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     const [{ data: recurring }, { data: accounts }, { data: debts }, { data: log }] = await Promise.all([
@@ -44,11 +45,11 @@ function NotificationCenter() {
     ]);
 
     const next: AlertItem[] = [];
-    const cash = (accounts ?? []).reduce((sum: number, account: any) => sum + Number(account.balance || 0), 0);
+    const cash = (accounts ?? []).reduce((sum, account) => sum + Number(account.balance || 0), 0);
     if (cash < 500) next.push({ key: "cash-buffer", title: "Cash buffer is below $500", body: `Available cash is ${money(cash)}. Protect the buffer before extra spending or debt payments.`, tone: "danger", href: "/payday", action: "Review payday plan" });
 
-    const dueSoon = (recurring ?? []).filter((item: any) => daysUntil(item.next_due_date) >= 0 && daysUntil(item.next_due_date) <= 7);
-    const projected = cash - dueSoon.reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
+    const dueSoon = (recurring ?? []).filter((item) => daysUntil(item.next_due_date) >= 0 && daysUntil(item.next_due_date) <= 7);
+    const projected = cash - dueSoon.reduce((sum, item) => sum + Number(item.amount || 0), 0);
     if (projected < 500 && dueSoon.length) next.push({ key: "projected-buffer", title: "Upcoming payments may reduce your buffer", body: `After bills and renewals due within 7 days, projected cash is ${money(projected)}.`, tone: projected < 0 ? "danger" : "warning", href: "/bill-calendar", action: "Open bill calendar" });
 
     for (const item of recurring ?? []) {
@@ -74,17 +75,19 @@ function NotificationCenter() {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todays = (log ?? []).filter((item: any) => new Date(item.created_at) >= today);
-    const fresh = next.filter((alert) => !todays.some((item: any) => item.title === alert.title && item.body === alert.body));
+    const todays = (log ?? []).filter((item) => new Date(item.created_at) >= today);
+    const fresh = next.filter((alert) => !todays.some((item) => item.title === alert.title && item.body === alert.body));
     if (fresh.length) {
       await supabase.from("notification_log").insert(fresh.map((alert) => ({ user_id: user.id, title: alert.title, body: alert.body, channel: "in_app", read: false })));
       const { data: updated } = await supabase.from("notification_log").select("*").order("created_at", { ascending: false }).limit(50);
       setHistory(updated ?? []);
     }
     setLoading(false);
-  }
+  }, [user]);
 
-  useEffect(() => { refresh(); }, [user?.id]);
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const unread = useMemo(() => history.filter((item) => !item.read).length, [history]);
 

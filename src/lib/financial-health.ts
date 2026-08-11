@@ -1,4 +1,4 @@
-import { CASH_BUFFER, highInterestDebt, totalCash, utilization } from "./coach";
+import { CASH_BUFFER, highInterestDebt, totalCash, utilization, type CoachContext } from "./coach";
 
 export type HealthFactor = {
   label: string;
@@ -15,20 +15,20 @@ export type FinancialHealthResult = {
   nextBestAction: string;
 };
 
-export function financialHealth(ctx: any): FinancialHealthResult {
+export function financialHealth(ctx: CoachContext): FinancialHealthResult {
   const cash = totalCash(ctx);
   const cardDebt = highInterestDebt(ctx);
-  const activeCards = (ctx.debts ?? []).filter((d: any) => d.kind !== "car_loan" && Number(d.credit_limit || 0) > 0);
+  const activeCards = (ctx.debts ?? []).filter((d) => d.kind !== "car_loan" && Number(d.credit_limit || 0) > 0);
   const avgUtil = activeCards.length
-    ? activeCards.reduce((sum: number, d: any) => sum + utilization(d), 0) / activeCards.length
+    ? activeCards.reduce((sum, d) => sum + utilization(d), 0) / activeCards.length
     : 0;
-  const overdue = (ctx.debts ?? []).filter((d: any) => d.status === "past_due").length;
-  const completedReminders = (ctx.reminders ?? []).filter((r: any) => r.completed).length;
+  const overdue = (ctx.debts ?? []).filter((d) => d.status === "past_due").length;
+  const completedReminders = (ctx.reminders ?? []).filter((r) => r.completed).length;
   const totalReminders = (ctx.reminders ?? []).length;
   const reminderRate = totalReminders ? completedReminders / totalReminders : 1;
   const goals = ctx.goals ?? [];
   const goalProgress = goals.length
-    ? goals.reduce((sum: number, g: any) => sum + Math.min(1, Number(g.current_amount || 0) / Math.max(1, Number(g.target_amount || 1))), 0) / goals.length
+    ? goals.reduce((sum, g) => sum + Math.min(1, Number(g.current_amount || 0) / Math.max(1, Number(g.target_amount || 1))), 0) / goals.length
     : 0;
 
   const cashScore = cash >= CASH_BUFFER * 2 ? 25 : cash >= CASH_BUFFER ? 18 : Math.max(0, Math.round((cash / CASH_BUFFER) * 18));

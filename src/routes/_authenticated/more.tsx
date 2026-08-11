@@ -21,7 +21,7 @@ import {
   Upload,
   WandSparkles,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { signOutCompletely } from "@/lib/session";
 
 export const Route = createFileRoute("/_authenticated/more")({
   head: () => ({
@@ -179,7 +179,7 @@ function MorePage() {
 
       <button
         onClick={async () => {
-          await supabase.auth.signOut();
+          await signOutCompletely();
           navigate({ to: "/auth" });
         }}
         className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-4 text-sm font-medium text-destructive transition hover:bg-destructive/10 active:scale-[0.99]"

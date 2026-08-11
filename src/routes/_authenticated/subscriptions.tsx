@@ -80,7 +80,7 @@ function renewalLabel(days: number) {
 function SubscriptionsPage() {
   const { user } = useAuth();
   const client = useQueryClient();
-  const db = supabase as any;
+  const db = supabase;
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("active");
   const [search, setSearch] = useState("");
@@ -88,7 +88,7 @@ function SubscriptionsPage() {
   const [showAmounts, setShowAmounts] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", amount: "", cadence: "monthly", next_due_date: "", category: "Entertainment", autopay: true });
+  const [form, setForm] = useState({ name: "", amount: "", cadence: "monthly" as Subscription["cadence"], next_due_date: "", category: "Entertainment", autopay: true });
 
   const subscriptions = useQuery({
     queryKey: ["subscriptions", user?.id],
@@ -126,7 +126,7 @@ function SubscriptionsPage() {
     },
     onSuccess: () => {
       toast.success("Subscription added");
-      setForm({ name: "", amount: "", cadence: "monthly", next_due_date: "", category: "Entertainment", autopay: true });
+      setForm({ name: "", amount: "", cadence: "monthly" as Subscription["cadence"], next_due_date: "", category: "Entertainment", autopay: true });
       setOpen(false);
       client.invalidateQueries({ queryKey: ["subscriptions", user?.id] });
     },
@@ -295,7 +295,7 @@ function SubscriptionsPage() {
           <div className="grid gap-4 p-5 sm:grid-cols-2">
             <div><Label>Name</Label><Input className="mt-1 rounded-xl" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Spotify" /></div>
             <div><Label>Amount</Label><Input className="mt-1 rounded-xl" inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="12.99" /></div>
-            <div><Label>Cadence</Label><select className="mt-1 h-10 w-full rounded-xl border border-input bg-background px-3 text-sm" value={form.cadence} onChange={(e) => setForm({ ...form, cadence: e.target.value })}><option value="monthly">Monthly</option><option value="annual">Annual</option><option value="weekly">Weekly</option><option value="biweekly">Biweekly</option><option value="quarterly">Quarterly</option><option value="semiannual">Every 6 months</option></select></div>
+            <div><Label>Cadence</Label><select className="mt-1 h-10 w-full rounded-xl border border-input bg-background px-3 text-sm" value={form.cadence} onChange={(e) => setForm({ ...form, cadence: e.target.value as Subscription["cadence"] })}><option value="monthly">Monthly</option><option value="annual">Annual</option><option value="weekly">Weekly</option><option value="biweekly">Biweekly</option><option value="quarterly">Quarterly</option><option value="semiannual">Every 6 months</option></select></div>
             <div><Label>Next renewal</Label><Input className="mt-1 rounded-xl" type="date" value={form.next_due_date} onChange={(e) => setForm({ ...form, next_due_date: e.target.value })} /></div>
             <div><Label>Category</Label><Input className="mt-1 rounded-xl" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
             <label className="flex items-center justify-between rounded-2xl border border-border bg-secondary/30 px-4 py-3 text-sm"><span><span className="block font-medium">Auto-pay</span><span className="text-xs text-muted-foreground">Charge happens automatically</span></span><input className="h-4 w-4 accent-current" type="checkbox" checked={form.autopay} onChange={(e) => setForm({ ...form, autopay: e.target.checked })} /></label>

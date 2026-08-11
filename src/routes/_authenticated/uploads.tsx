@@ -17,7 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import type { ImportItem } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/uploads")({
-  head: () => ({ meta: [{ title: "Statement Uploads — Money Map" }, { name: "description", content: "Upload bank, credit card, pay stub, and retirement statements and review every extracted item before saving." }] }),
+  head: () => ({ meta: [{ title: "Statement Uploads — Wealthpilot" }, { name: "description", content: "Upload bank, credit card, pay stub, and retirement statements and review every extracted item before saving." }] }),
   component: UploadsPage,
 });
 
@@ -58,7 +58,7 @@ function UploadsPage() {
 
       <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 text-xs text-muted-foreground">
         <Shield className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-        <span>Everything extracted lands in a review table first. Money Map never updates a balance or adds a transaction without your confirmation, and flags anything that looks like a duplicate.</span>
+        <span>Everything extracted lands in a review table first. Wealthpilot never updates a balance or adds a transaction without your confirmation, and flags anything that looks like a duplicate.</span>
       </div>
 
       <section className="space-y-2">
@@ -343,7 +343,8 @@ function ReviewScreen({ importId, onBack }: { importId: string; onBack: () => vo
                 <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent><SelectItem value="expense">Expense</SelectItem><SelectItem value="income">Income</SelectItem><SelectItem value="debt_payment">Debt payment</SelectItem><SelectItem value="transfer">Transfer</SelectItem></SelectContent>
               </Select>
-              <Input className="h-8 w-40 text-xs" placeholder="Category" value={it.category ?? ""} onChange={(e) => patch(it.id, { category: e.target.value })} />
+              {/* text-base below md: anything under 16px makes iOS zoom on focus. */}
+              <Input className="h-9 w-40 text-base md:h-8 md:text-xs" placeholder="Category" value={it.category ?? ""} onChange={(e) => patch(it.id, { category: e.target.value })} />
               <div className="ml-auto flex gap-1">
                 {(["accept", "review", "exclude"] as const).map((d) => (
                   <button key={d} onClick={() => patch(it.id, { decision: d })} className={`rounded-full px-3 py-1 text-xs capitalize ${it.decision === d ? (d === "accept" ? "bg-success/20 text-success" : d === "exclude" ? "bg-destructive/20 text-destructive" : "bg-warning/20 text-warning") : "bg-secondary text-muted-foreground"}`}>{d}</button>

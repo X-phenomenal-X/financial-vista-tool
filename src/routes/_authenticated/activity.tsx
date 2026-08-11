@@ -7,7 +7,7 @@ import { useState, useMemo } from "react";
 import { Search, ArrowLeftRight, ArrowDown, ArrowUp, CreditCard } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/activity")({
-  head: () => ({ meta: [{ title: "Activity — Money Map" }, { name: "description", content: "All money in and out, grouped by day." }] }),
+  head: () => ({ meta: [{ title: "Activity — Wealthpilot" }, { name: "description", content: "All money in and out, grouped by day." }] }),
   component: Activity,
 });
 

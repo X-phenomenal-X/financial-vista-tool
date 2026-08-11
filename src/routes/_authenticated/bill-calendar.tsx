@@ -23,6 +23,7 @@ import { useAllData } from "@/lib/queries";
 import { totalCash } from "@/lib/coach";
 import { money } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
+import type { Enums } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/bill-calendar")({
@@ -38,12 +39,14 @@ export const Route = createFileRoute("/_authenticated/bill-calendar")({
   component: BillCalendarPage,
 });
 
+type Cadence = Enums<"recurring_cadence">;
+
 type Bill = {
   id: string;
   name: string;
   amount: number;
   next_due_date: string;
-  cadence: string;
+  cadence: Cadence;
   category: string | null;
   autopay: boolean;
   is_active: boolean;
@@ -67,13 +70,13 @@ function BillCalendarPage() {
   const { user } = useAuth();
   const ctx = useAllData(user?.id);
   const queryClient = useQueryClient();
-  const db = supabase as any;
+  const db = supabase;
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
   const [payingId, setPayingId] = useState<string | null>(null);
   const [showAmounts, setShowAmounts] = useState(true);
   const [horizon, setHorizon] = useState<Horizon>(30);
-  const [form, setForm] = useState({ name: "", amount: "", due: "", cadence: "monthly", category: "Bills", autopay: false });
+  const [form, setForm] = useState({ name: "", amount: "", due: "", cadence: "monthly" as Cadence, category: "Bills", autopay: false });
 
   const billsQuery = useQuery({
     queryKey: ["bill-calendar", user?.id],
@@ -86,7 +89,8 @@ function BillCalendarPage() {
         .in("kind", ["bill", "debt_payment", "expense"])
         .order("next_due_date", { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((bill: any) => ({ ...bill, amount: Number(bill.amount) })) as Bill[];
+      // amount arrives as a numeric string from Postgres.
+      return (data ?? []).map((bill) => ({ ...bill, amount: Number(bill.amount) })) as Bill[];
     },
   });
 
@@ -163,7 +167,7 @@ function BillCalendarPage() {
       return;
     }
     toast.success("Bill added");
-    setForm({ name: "", amount: "", due: "", cadence: "monthly", category: "Bills", autopay: false });
+    setForm({ name: "", amount: "", due: "", cadence: "monthly" as Cadence, category: "Bills", autopay: false });
     setShowAdd(false);
     queryClient.invalidateQueries({ queryKey: ["bill-calendar", user.id] });
   }
@@ -175,7 +179,8 @@ function BillCalendarPage() {
       const next = await db.rpc("next_recurring_date", {
         current_date_value: bill.next_due_date,
         cadence_value: bill.cadence,
-        interval_days: null,
+        // interval_days is omitted so the function applies its own default;
+        // it only applies to the "custom" cadence.
       });
       if (next.error) throw next.error;
       const nextDate = next.data ?? bill.next_due_date;
@@ -280,7 +285,7 @@ function BillCalendarPage() {
             <input className="col-span-2 rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-accent/50" placeholder="Bill name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
             <input className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-accent/50" type="number" min="0" step="0.01" placeholder="Amount" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
             <input className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-accent/50" type="date" value={form.due} onChange={(event) => setForm({ ...form, due: event.target.value })} />
-            <select className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none" value={form.cadence} onChange={(event) => setForm({ ...form, cadence: event.target.value })}><option value="weekly">Weekly</option><option value="biweekly">Biweekly</option><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="annual">Annual</option></select>
+            <select className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none" value={form.cadence} onChange={(event) => setForm({ ...form, cadence: event.target.value as Cadence })}><option value="weekly">Weekly</option><option value="biweekly">Biweekly</option><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="annual">Annual</option></select>
             <input className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-accent/50" placeholder="Category" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} />
             <label className="col-span-2 flex items-center justify-between rounded-2xl border border-border bg-secondary/30 px-4 py-3 text-sm sm:col-span-1"><span><span className="block font-medium">Auto-pay</span><span className="text-xs text-muted-foreground">Payment runs automatically</span></span><input className="h-4 w-4" type="checkbox" checked={form.autopay} onChange={(event) => setForm({ ...form, autopay: event.target.checked })} /></label>
           </div>

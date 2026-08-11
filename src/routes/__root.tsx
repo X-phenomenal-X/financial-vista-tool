@@ -10,7 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { usePwa } from "@/hooks/use-pwa";
+import { PwaProvider } from "@/hooks/use-pwa";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -86,6 +86,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "A private financial command center for cash flow, budgets, debt payoff, goals, and smarter decisions." },
       { name: "author", content: "Wealthpilot" },
       { name: "theme-color", content: "#100d18" },
+      // Home-screen install support. iOS still reads the apple-prefixed tags, and
+      // black-translucent lets the app run edge-to-edge — the shell already pads
+      // with env(safe-area-inset-*).
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Wealthpilot" },
+      // Stop iOS from turning balances and account numbers into phone links.
+      { name: "format-detection", content: "telephone=no" },
       { property: "og:title", content: "Wealthpilot" },
       { property: "og:description", content: "Your private financial command center." },
       { property: "og:type", content: "website" },
@@ -94,7 +103,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
-      { rel: "apple-touch-icon", href: "/icon-192.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -126,12 +135,13 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  usePwa();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <Toaster theme="dark" position="top-center" richColors closeButton duration={3200} />
+      <PwaProvider>
+        <Outlet />
+        <Toaster theme="dark" position="top-center" richColors closeButton duration={3200} />
+      </PwaProvider>
     </QueryClientProvider>
   );
 }

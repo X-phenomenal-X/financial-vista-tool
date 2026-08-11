@@ -178,6 +178,40 @@
     touch-action: manipulation;
   }
 
+  /* --- Installed-app behaviour ---------------------------------------- */
+
+  html {
+    /* Stops iOS inflating text when the device is rotated. */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    /* No rubber-band or pull-to-refresh: those read as "web page", and in
+       standalone mode the bounce exposes a blank strip behind the app. */
+    overscroll-behavior-y: none;
+  }
+
+  /* Chrome should feel like chrome — long-pressing a tab must not select its
+     label or raise the iOS callout menu. Page content stays selectable so
+     balances and account numbers can still be copied. */
+  .mobile-dock,
+  .mobile-app-header,
+  .app-sidebar,
+  .desktop-command-bar,
+  .quick-add-fab {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  @media (display-mode: standalone) {
+    /* Launched from the home screen there is no browser UI to scroll away,
+       so the viewport height is stable and safe areas do the spacing. */
+    body {
+      min-height: 100vh;
+    }
+  }
+
   :is(button, a, input, select, textarea):focus-visible {
     outline: 2px solid color-mix(in oklch, var(--ring) 82%, white 18%);
     outline-offset: 3px;

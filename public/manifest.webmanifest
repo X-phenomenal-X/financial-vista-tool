@@ -1,16 +1,41 @@
 {
-  "name": "Money Map — Private Finance OS",
-  "short_name": "Money Map",
+  "id": "/",
+  "name": "Wealthpilot — Private Finance OS",
+  "short_name": "Wealthpilot",
   "description": "Private financial command center for cash flow, budgets, debt payoff, and goals.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#100d18",
   "theme_color": "#100d18",
+  "categories": ["finance", "productivity"],
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-any-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-any-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick add",
+      "short_name": "Add",
+      "description": "Log a transaction or update a balance",
+      "url": "/dashboard?quickAdd=1"
+    },
+    {
+      "name": "Debt Control",
+      "short_name": "Debts",
+      "description": "Balances, APRs, minimums, and payoff priority",
+      "url": "/debts"
+    },
+    {
+      "name": "Payday Planner",
+      "short_name": "Payday",
+      "description": "Plan the next paycheque",
+      "url": "/payday"
+    }
   ]
 }

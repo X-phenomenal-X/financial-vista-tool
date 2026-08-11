@@ -40,7 +40,7 @@ export interface RestoreReport { table: string; inserted: number; skipped: numbe
 /** Restores rows the account doesn't already have. Existing ids are skipped (duplicate protection). */
 export async function restoreBackup(json: unknown, userId: string): Promise<RestoreReport[]> {
   const parsed = json as { tables?: Record<string, Record<string, unknown>[]> };
-  if (!parsed || typeof parsed !== "object" || !parsed.tables) throw new Error("This file isn't a Money Map backup.");
+  if (!parsed || typeof parsed !== "object" || !parsed.tables) throw new Error("This file isn't a Wealthpilot backup.");
   const reports: RestoreReport[] = [];
   for (const t of BACKUP_TABLES) {
     const rows = parsed.tables[t];

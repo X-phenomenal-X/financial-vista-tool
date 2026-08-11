@@ -137,9 +137,9 @@ export function parseCsv(text: string, docKind: DocKind): ParsedStatement {
 
   const header = headerIdx >= 0 ? rows[headerIdx].map((c) => c.toLowerCase()) : [];
   const find = (re: RegExp) => header.findIndex((c) => re.test(c));
-  let dateCol = find(/date/);
-  let descCol = find(/desc|detail|merchant|payee|narrat|memo|transaction/);
-  let amtCol = find(/^amount|amount$|value/);
+  const dateCol = find(/date/);
+  const descCol = find(/desc|detail|merchant|payee|narrat|memo|transaction/);
+  const amtCol = find(/^amount|amount$|value/);
   const debitCol = find(/debit|withdraw|paid out/);
   const creditCol = find(/credit|deposit|paid in/);
 

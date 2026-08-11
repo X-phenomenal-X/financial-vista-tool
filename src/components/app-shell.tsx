@@ -20,10 +20,13 @@ import {
   Upload,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { signOutCompletely } from "@/lib/session";
+import { useAuth } from "@/hooks/use-auth";
+import { useQueryPersistence } from "@/lib/query-persist";
+import { PwaStatus } from "./pwa-status";
 import { QuickAddDialog } from "./quick-add-dialog";
 
 const TABS = [
@@ -67,11 +70,24 @@ export function AppShell() {
   const [open, setOpen] = useState(false);
   const path = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
+  const { user } = useAuth();
+  // Keeps the last-known data on disk so an offline launch has something to show.
+  useQueryPersistence(user?.id);
   const active = (to: string) => path === to || (to !== "/dashboard" && path.startsWith(to));
   const currentPage = ALL_NAV.find((item) => active(item.to))?.label ?? "Wealthpilot";
 
+  // The manifest's "Quick add" shortcut deep-links to /dashboard?quickAdd=1.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("quickAdd")) return;
+    setOpen(true);
+    url.searchParams.delete("quickAdd");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  }, []);
+
   async function signOut() {
-    await supabase.auth.signOut();
+    await signOutCompletely();
     navigate({ to: "/auth" });
   }
 
@@ -269,6 +285,8 @@ export function AppShell() {
           })}
         </ul>
       </nav>
+
+      <PwaStatus showInstallPrompt />
 
       <QuickAddDialog open={open} onOpenChange={setOpen} />
     </div>
