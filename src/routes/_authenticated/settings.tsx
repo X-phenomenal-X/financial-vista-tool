@@ -9,6 +9,7 @@ import {
   FileSpreadsheet,
   RotateCcw,
   Shield,
+  Smartphone,
   Sparkles,
   Upload,
 } from "lucide-react";
@@ -122,8 +123,43 @@ function SettingsPage() {
 
       <section className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center gap-2">
+          <Smartphone className="h-4 w-4 text-accent" />
+          <h2 className="text-sm font-semibold">Install & offline access</h2>
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Install Money Map to your home screen for full-screen use. Recently viewed screens stay readable without a connection; edits need you back online.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className={`rounded-full px-3 py-1 text-xs ${pwa.online ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>
+            {pwa.online ? "Online" : "Offline — read-only"}
+          </span>
+          <span className="rounded-full bg-secondary/50 px-3 py-1 text-xs text-muted-foreground">
+            {pwa.installed ? "Installed" : "Not installed"}
+          </span>
+          {!pwa.installed && pwa.canInstall && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={async () => {
+                const accepted = await pwa.install();
+                if (accepted) toast.success("Money Map is installing");
+              }}
+            >
+              <Smartphone className="mr-2 h-4 w-4" />
+              Install app
+            </Button>
+          )}
+        </div>
+        {!pwa.installed && !pwa.canInstall && (
+          <div className="mt-3 rounded-xl bg-secondary/40 px-3 py-3 text-xs text-muted-foreground">
+            On iPhone: open in Safari, tap Share, then “Add to Home Screen”.
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-border bg-card p-5">
+        <div className="flex items-center gap-2">
           <FileJson className="h-4 w-4 text-accent" />
-          <span className="sr-only">Backup</span>
           <h2 className="text-sm font-semibold">Full backup & restore</h2>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
