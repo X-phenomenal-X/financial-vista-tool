@@ -1,3 +1,14 @@
+-- This migration creates triggers that call public.tg_touch_updated_at(), but
+-- nothing in the project ever defined it. Applying the file therefore failed
+-- at the first trigger, which is why none of the six tables below exist in
+-- the database. Defining it here, before first use, makes the migration
+-- runnable.
+CREATE OR REPLACE FUNCTION public.tg_touch_updated_at()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END $$;
 
 CREATE TABLE public.statement_imports (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
