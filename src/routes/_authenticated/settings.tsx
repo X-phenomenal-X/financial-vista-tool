@@ -123,6 +123,7 @@ function SettingsPage() {
       <section className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center gap-2">
           <FileJson className="h-4 w-4 text-accent" />
+          <span className="sr-only">Backup</span>
           <h2 className="text-sm font-semibold">Full backup & restore</h2>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
