@@ -13,6 +13,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { usePwa } from "@/hooks/use-pwa";
 import { useAllData, useAuditLog, useProfile } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { buildBackup, download, restoreBackup, toCsv } from "@/lib/backup";
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 function SettingsPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const pwa = usePwa();
   const { data: profile } = useProfile(user?.id);
   const ctx = useAllData(user?.id);
   const { data: audit = [], isLoading: auditLoading } = useAuditLog(user?.id);
