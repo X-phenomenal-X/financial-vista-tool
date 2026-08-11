@@ -26,6 +26,7 @@ import { useAllData } from "@/lib/queries";
 import { dateShort, daysUntil, greetingFor, money } from "@/lib/format";
 import {
   CASH_BUFFER,
+  CC_TARGET,
   availableAboveBuffer,
   carLoanBalance,
   highInterestDebt,
@@ -39,6 +40,8 @@ import {
   utilization,
 } from "@/lib/coach";
 import { financialHealth } from "@/lib/financial-health";
+import { AnimatedMoney, AnimatedNumber } from "@/components/ui/animated-number";
+import { PayoffOutlookCard } from "@/components/payoff-outlook-card";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -290,6 +293,8 @@ function Dashboard() {
           )}
         </div>
       </section>
+
+      <PayoffOutlookCard debts={ctx.debts} basePayment={CC_TARGET} hidden={hideBalances} />
 
       <section aria-labelledby="today-heading">
         <SectionHeading
@@ -749,70 +754,6 @@ function SectionHeading({
       <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">{description}</p>
     </div>
   );
-}
-
-function AnimatedMoney({
-  value,
-  hidden,
-  className,
-}: {
-  value: number;
-  hidden: boolean;
-  className?: string;
-}) {
-  const [displayValue, setDisplayValue] = useState(value);
-
-  useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      setDisplayValue(value);
-      return;
-    }
-
-    const duration = 620;
-    const startedAt = performance.now();
-    let frame = 0;
-    const tick = (now: number) => {
-      const progress = Math.min(1, (now - startedAt) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayValue(value * eased);
-      if (progress < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [value]);
-
-  return <span className={className}>{hidden ? "••••••" : money(displayValue)}</span>;
-}
-
-function AnimatedNumber({ value, className }: { value: number; className?: string }) {
-  const [displayValue, setDisplayValue] = useState(value);
-
-  useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      setDisplayValue(value);
-      return;
-    }
-
-    const duration = 560;
-    const startedAt = performance.now();
-    let frame = 0;
-    const tick = (now: number) => {
-      const progress = Math.min(1, (now - startedAt) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayValue(Math.round(value * eased));
-      if (progress < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [value]);
-
-  return <span className={className}>{displayValue}</span>;
 }
 
 function DashboardSkeleton() {

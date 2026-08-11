@@ -1,4 +1,7 @@
-export function money(n: number | string | null | undefined, opts: { sign?: boolean; short?: boolean } = {}) {
+export function money(
+  n: number | string | null | undefined,
+  opts: { sign?: boolean; short?: boolean; whole?: boolean } = {},
+) {
   const v = typeof n === "string" ? parseFloat(n) : n ?? 0;
   if (opts.short && Math.abs(v) >= 10000) {
     return `${v < 0 ? "−$" : "$"}${(Math.abs(v) / 1000).toFixed(1)}k`;
@@ -6,7 +9,10 @@ export function money(n: number | string | null | undefined, opts: { sign?: bool
   const s = new Intl.NumberFormat("en-CA", {
     style: "currency",
     currency: "CAD",
-    maximumFractionDigits: 2,
+    // `whole` drops the cents for round figures like payment amounts, where
+    // a trailing ".00" is just noise.
+    maximumFractionDigits: opts.whole ? 0 : 2,
+    minimumFractionDigits: opts.whole ? 0 : 2,
   }).format(Math.abs(v));
   if (opts.sign) return `${v < 0 ? "−" : "+"}${s}`;
   return v < 0 ? `−${s}` : s;

@@ -23,7 +23,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/use-auth";
-import { priorityOrder, utilization } from "@/lib/coach";
+import { CC_TARGET, priorityOrder, utilization } from "@/lib/coach";
+import { PayoffOutlookCard } from "@/components/payoff-outlook-card";
 import { dateShort, daysUntil, money } from "@/lib/format";
 import { useDebts } from "@/lib/queries";
 
@@ -269,6 +270,8 @@ function DebtsPage() {
           />
         </div>
       </section>
+
+      <PayoffOutlookCard debts={debts} basePayment={CC_TARGET} hidden={!balancesVisible} />
 
       <section>
         <div className="flex items-end justify-between gap-4">
