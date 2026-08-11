@@ -18,6 +18,7 @@ import {
   TrendingDown,
   WalletCards,
   Zap,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,8 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/use-auth";
 import { CC_TARGET, priorityOrder, utilization } from "@/lib/coach";
 import { PayoffOutlookCard } from "@/components/payoff-outlook-card";
+import { DebtEditSheet } from "@/components/debt-edit-sheet";
+import type { Debt } from "@/lib/types";
 import { dateShort, daysUntil, money } from "@/lib/format";
 import { useDebts } from "@/lib/queries";
 
@@ -52,6 +55,7 @@ function DebtsPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Debt | null>(null);
 
   const ordered = useMemo(
     () =>
@@ -554,18 +558,23 @@ function DebtsPage() {
                       <p className="mt-3 text-xs leading-5 text-muted-foreground">{debt.notes}</p>
                     )}
 
-                    {!isCarLoan && (
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
                       <Button
-                        asChild
                         size="sm"
                         variant="outline"
-                        className="mt-4 w-full rounded-2xl"
+                        className="w-full rounded-2xl"
+                        onClick={() => setEditing(debt)}
                       >
-                        <Link to="/simulator">
-                          Test extra payments <ArrowRight />
-                        </Link>
+                        <Pencil /> Update balance
                       </Button>
-                    )}
+                      {!isCarLoan && (
+                        <Button asChild size="sm" variant="outline" className="w-full rounded-2xl">
+                          <Link to="/simulator">
+                            Test extra payments <ArrowRight />
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 )}
               </article>
@@ -604,6 +613,12 @@ function DebtsPage() {
           </p>
         </section>
       )}
+
+      <DebtEditSheet
+        debt={editing}
+        open={editing !== null}
+        onOpenChange={(open) => !open && setEditing(null)}
+      />
     </div>
   );
 }
