@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/budget")({
   component: BudgetPage,
 });
 
-type BudgetView = "spending" | "savings" | "income" | "transfers";
+type BudgetView = "spending" | "debt" | "savings" | "income" | "transfers";
 
 type BudgetRow = {
   id: string;
@@ -80,12 +80,23 @@ function BudgetPage() {
     };
   });
 
-  const expenses = rows.filter((row) => row.kind === "expense" || row.kind === "debt");
+  // Card payments are tracked separately from spending on purpose.
+  //
+  // A purchase put on a card is already counted as an expense in its own
+  // category the day it is charged. Counting the payment that later clears
+  // that card as spending too would count the same money twice — $350 of
+  // groceries plus a $500 card payment reported $850 spent when $500 left
+  // the account. Paying a card moves cash against a liability; it is not new
+  // spending, so it gets its own block with its own monthly target.
+  const expenses = rows.filter((row) => row.kind === "expense");
+  const debtPayments = rows.filter((row) => row.kind === "debt");
   const savings = rows.filter((row) => row.kind === "savings");
   const transfers = rows.filter((row) => row.kind === "transfer");
   const income = rows.filter((row) => row.kind === "income");
   const spent = expenses.reduce((sum, row) => sum + row.actual, 0);
   const plannedTotal = expenses.reduce((sum, row) => sum + row.planned, 0);
+  const debtPaid = debtPayments.reduce((sum, row) => sum + row.actual, 0);
+  const debtPlanned = debtPayments.reduce((sum, row) => sum + row.planned, 0);
   const remaining = plannedTotal - spent;
   const spentPct = plannedTotal > 0 ? (spent / plannedTotal) * 100 : 0;
   const dailyRoom = daysLeft > 0 ? Math.max(0, remaining) / daysLeft : Math.max(0, remaining);
@@ -122,6 +133,7 @@ function BudgetPage() {
 
   const groups: Record<BudgetView, BudgetRow[]> = {
     spending: expenses,
+    debt: debtPayments,
     savings,
     income,
     transfers,
@@ -213,6 +225,38 @@ function BudgetPage() {
         </div>
       </section>
 
+      {debtPayments.length > 0 && (
+        <section className="rounded-[1.6rem] border border-white/[0.08] bg-card/70 p-5 shadow-card sm:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="min-w-0">
+              <div className="eyebrow">Card payments</div>
+              <div className="numeric-display mt-2 font-display text-3xl leading-none">
+                {money(debtPaid)}
+                <span className="ml-2 align-middle text-sm font-normal text-muted-foreground">
+                  of {money(debtPlanned)} planned
+                </span>
+              </div>
+            </div>
+            <div className="text-right text-xs text-muted-foreground">
+              {debtPlanned > 0
+                ? `${Math.round((debtPaid / debtPlanned) * 100)}% of target`
+                : "No target set"}
+            </div>
+          </div>
+
+          <Progress
+            value={debtPlanned > 0 ? Math.min(100, (debtPaid / debtPlanned) * 100) : 0}
+            className="mt-4 h-2.5 [&>*]:bg-primary"
+          />
+
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">
+            Kept out of the spending total above. A purchase on a card is already counted as an
+            expense when you charge it, so counting the payment that clears the card as spending too
+            would count the same money twice.
+          </p>
+        </section>
+      )}
+
       <section>
         <div className="flex items-end justify-between gap-4">
           <div>
@@ -232,6 +276,7 @@ function BudgetPage() {
           {(
             [
               ["spending", "Spending", expenses.length],
+              ["debt", "Card payments", debtPayments.length],
               ["savings", "Savings", savings.length],
               ["income", "Income", income.length],
               ["transfers", "Transfers", transfers.length],

@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useAllData } from "@/lib/queries";
 import { money, parseLocalDate } from "@/lib/format";
-import { totalCash, highInterestDebt, utilization, countsAsSpend, spendAmount, CASH_BUFFER } from "@/lib/coach";
+import { totalCash, highInterestDebt, utilization, spendAmount, CASH_BUFFER } from "@/lib/coach";
 import { supabase } from "@/integrations/supabase/client";
 
 const recurringDb = supabase as unknown as SupabaseClient;
@@ -211,14 +211,17 @@ function InsightsPage() {
     const monthStart = new Date();
     monthStart.setDate(1);
     monthStart.setHours(0, 0, 0, 0);
+    // Both sides are pure expenses. Including card payments in the plan but
+    // not the actuals made the pace always read under plan, and including
+    // them in both would double-count purchases already logged as expenses.
     const currentExpenses = ctx.transactions
       .filter(
         (transaction) =>
-          countsAsSpend(transaction) && parseLocalDate(transaction.occurred_on) >= monthStart,
+          transaction.type === "expense" && parseLocalDate(transaction.occurred_on) >= monthStart,
       )
       .reduce((sum, item) => sum + spendAmount(item), 0);
     const plannedExpenses = ctx.budget
-      .filter((item) => item.kind !== "income" && item.kind !== "transfer")
+      .filter((item) => item.kind === "expense")
       .reduce((sum, item) => sum + Number(item.planned), 0);
     if (plannedExpenses > 0) {
       const pace = currentExpenses / plannedExpenses;
