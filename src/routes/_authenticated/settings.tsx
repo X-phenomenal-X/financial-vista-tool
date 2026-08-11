@@ -19,6 +19,7 @@ import { useAllData, useAuditLog, useProfile } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { buildBackup, download, restoreBackup, toCsv } from "@/lib/backup";
 import { logAudit } from "@/lib/audit";
+import { toDateKey } from "@/lib/format";
 import { signOutCompletely } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -45,7 +46,7 @@ function SettingsPage() {
   const [restoreSummary, setRestoreSummary] = useState<string | null>(null);
   const [auditEntity, setAuditEntity] = useState("all");
 
-  const stamp = () => new Date().toISOString().slice(0, 10);
+  const stamp = () => toDateKey(new Date());
 
   async function exportFullBackup() {
     setBusy("backup");

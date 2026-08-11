@@ -16,20 +16,52 @@ export function pct(n: number, digits = 0) {
   return `${(n * 100).toFixed(digits)}%`;
 }
 
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Parses a value from a Postgres `date` column at local midnight.
+ *
+ * `new Date("2026-08-04")` is parsed as UTC midnight, which in
+ * America/Toronto is 8pm on Aug 3 — so due dates rendered a day early and
+ * transactions dated the 1st fell outside their own month. Values that
+ * carry a time (timestamptz) are already unambiguous and pass straight
+ * through.
+ */
+export function parseLocalDate(d: string | Date): Date {
+  if (typeof d !== "string") return d;
+  if (!DATE_ONLY.test(d)) return new Date(d);
+  const [year, month, day] = d.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/** Local YYYY-MM-DD, matching how a `date` column is stored. */
+export function toDateKey(d: Date) {
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
+export function startOfDay(d: string | Date) {
+  const dt = parseLocalDate(d);
+  return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+}
+
 export function dateShort(d: string | Date) {
-  const dt = typeof d === "string" ? new Date(d) : d;
-  return dt.toLocaleDateString("en-CA", { month: "short", day: "numeric" });
+  return parseLocalDate(d).toLocaleDateString("en-CA", { month: "short", day: "numeric" });
 }
 
 export function dateFull(d: string | Date) {
-  const dt = typeof d === "string" ? new Date(d) : d;
-  return dt.toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" });
+  return parseLocalDate(d).toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" });
 }
 
+/**
+ * Whole calendar days from today. Counting day boundaries rather than
+ * elapsed milliseconds keeps "Due tomorrow" correct late in the evening,
+ * and rounding absorbs the 23- and 25-hour days around DST.
+ */
 export function daysUntil(d: string | Date) {
-  const dt = typeof d === "string" ? new Date(d) : d;
-  const ms = dt.getTime() - Date.now();
-  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+  const ms = startOfDay(d).getTime() - startOfDay(new Date()).getTime();
+  return Math.round(ms / (1000 * 60 * 60 * 24));
 }
 
 export function daysInMonthLeft() {
@@ -51,8 +83,10 @@ export function groupByDate<T extends { occurred_on: string }>(rows: T[]): { key
     if (!map.has(k)) map.set(k, []);
     map.get(k)!.push(r);
   });
-  const today = new Date().toISOString().slice(0, 10);
-  const yest = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  // Local keys, not toISOString(): after 8pm in Toronto the UTC date has
+  // already rolled over, which labelled today's transactions "Yesterday".
+  const today = toDateKey(new Date());
+  const yest = toDateKey(new Date(Date.now() - 86400000));
   return [...map.entries()]
     .sort(([a], [b]) => (a < b ? 1 : -1))
     .map(([key, items]) => ({

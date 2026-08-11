@@ -1,5 +1,6 @@
 import type { Debt, Reminder } from "./types";
 import { priorityOrder } from "./coach";
+import { toDateKey } from "./format";
 
 export interface PlanLine {
   key: string;
@@ -69,5 +70,5 @@ export function nextPaydayISO(reminders: Reminder[]) {
   if (payday) return payday.due_at.slice(0, 10);
   const d = new Date();
   d.setDate(d.getDate() + 7);
-  return d.toISOString().slice(0, 10);
+  return toDateKey(d);
 }

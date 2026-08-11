@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { toDateKey } from "@/lib/format";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, useBudget, useDebts } from "@/lib/queries";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,7 +33,7 @@ export function QuickAddDialog({ open, onOpenChange }: { open: boolean; onOpenCh
   const [description, setDescription] = useState("");
   const [needWant, setNeedWant] = useState("need");
   const [cleared, setCleared] = useState(true);
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => toDateKey(new Date()));
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {

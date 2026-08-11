@@ -1,5 +1,5 @@
 import type { Debt, Reminder, BudgetCategory, Transaction } from "./types";
-import { daysUntil, money, dateShort } from "./format";
+import { daysUntil, money, dateShort, parseLocalDate } from "./format";
 import { utilization } from "./coach";
 
 export interface RuleAlert {
@@ -51,7 +51,7 @@ export function ruleAlerts(args: {
   const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
   for (const b of args.budget) {
     if (b.kind === "transfer" || b.kind === "income" || Number(b.planned) <= 0) continue;
-    const spent = args.transactions.filter((t) => t.category === b.name && t.type === "expense" && new Date(t.occurred_on) >= monthStart).reduce((s, t) => s + Number(t.amount), 0);
+    const spent = args.transactions.filter((t) => t.category === b.name && t.type === "expense" && parseLocalDate(t.occurred_on) >= monthStart).reduce((s, t) => s + Number(t.amount), 0);
     if (spent > Number(b.planned)) out.push({ id: `budget-${b.id}`, rule: "over_budget", title: `${b.name} over budget`, body: `${money(spent)} spent of ${money(b.planned)} — over by ${money(spent - Number(b.planned))}.`, tone: "warning" });
   }
 

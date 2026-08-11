@@ -10,7 +10,7 @@ import type {
   StatementImport,
   Transaction,
 } from "./types";
-import { dateShort, daysUntil, money } from "./format";
+import { dateShort, daysUntil, money, parseLocalDate, startOfDay } from "./format";
 
 export interface CoachContext {
   accounts: Account[];
@@ -85,7 +85,7 @@ function activePaydayPlan(ctx: CoachContext) {
 
 function nextPayday(ctx: CoachContext) {
   const futurePlans = (ctx.paydayPlans ?? [])
-    .filter((plan) => new Date(plan.pay_date).getTime() >= new Date().setHours(0, 0, 0, 0))
+    .filter((plan) => startOfDay(plan.pay_date).getTime() >= startOfDay(new Date()).getTime())
     .sort((a, b) => new Date(a.pay_date).getTime() - new Date(b.pay_date).getTime());
   if (futurePlans[0]) return futurePlans[0].pay_date;
 
@@ -96,12 +96,12 @@ function nextPayday(ctx: CoachContext) {
 }
 
 function upcomingMinimums(ctx: CoachContext, through?: string | null) {
-  const end = through ? new Date(through).getTime() : Date.now() + 14 * 86400000;
+  const end = through ? startOfDay(through).getTime() : Date.now() + 14 * 86400000;
   return ctx.debts
     .filter((debt) => {
       if (debt.status === "cleared" || debt.kind === "car_loan") return false;
       if (debt.status === "past_due") return true;
-      return Boolean(debt.due_date && new Date(debt.due_date).getTime() <= end);
+      return Boolean(debt.due_date && startOfDay(debt.due_date).getTime() <= end);
     })
     .reduce((sum, debt) => sum + Number(debt.minimum_payment || 0), 0);
 }
@@ -146,7 +146,7 @@ export function todayAction(ctx: CoachContext): string {
   if (urgent.length) return `${urgent[0].text}. Next action: handle that item now.`;
 
   const plan = activePaydayPlan(ctx);
-  if (plan && new Date(plan.pay_date).getTime() <= Date.now()) {
+  if (plan && startOfDay(plan.pay_date).getTime() <= Date.now()) {
     return `Your saved payday plan for ${dateShort(plan.pay_date)} is active. Next action: mark its allocations paid or enter actual amounts.`;
   }
 
@@ -207,7 +207,7 @@ function budgetProgress(ctx: CoachContext) {
         .filter(
           (transaction) =>
             transaction.category === item.name &&
-            new Date(transaction.occurred_on) >= monthStart &&
+            parseLocalDate(transaction.occurred_on) >= monthStart &&
             transaction.type !== "transfer",
         )
         .reduce((sum, transaction) => sum + Number(transaction.amount), 0);
@@ -254,10 +254,10 @@ export function changesSinceLastPayday(ctx: CoachContext): string {
   const today = new Date();
   const planDates = (ctx.paydayPlans ?? [])
     .map((plan) => plan.pay_date)
-    .filter((date) => new Date(date) <= today)
+    .filter((date) => startOfDay(date) <= today)
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
   const incomeDates = ctx.transactions
-    .filter((transaction) => transaction.type === "income" && new Date(transaction.occurred_on) <= today)
+    .filter((transaction) => transaction.type === "income" && startOfDay(transaction.occurred_on) <= today)
     .map((transaction) => transaction.occurred_on)
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
   const since = planDates[0] ?? incomeDates[0];
@@ -266,7 +266,7 @@ export function changesSinceLastPayday(ctx: CoachContext): string {
     return "I do not have a saved payday plan or income transaction to use as a starting point. Next action: save your next payday plan or log your pay deposit.";
   }
 
-  const transactions = ctx.transactions.filter((transaction) => new Date(transaction.occurred_on) >= new Date(since));
+  const transactions = ctx.transactions.filter((transaction) => parseLocalDate(transaction.occurred_on) >= parseLocalDate(since));
   const income = transactions.filter((transaction) => transaction.type === "income").reduce((sum, item) => sum + Number(item.amount), 0);
   const expenses = transactions.filter((transaction) => transaction.type === "expense").reduce((sum, item) => sum + Number(item.amount), 0);
   const debtPayments = transactions.filter((transaction) => transaction.type === "debt_payment").reduce((sum, item) => sum + Number(item.amount), 0);

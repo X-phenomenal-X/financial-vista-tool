@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useStatementImports, useImportItems, useAccounts, useDebts, useTransactions } from "@/lib/queries";
 import { parseStatementFile, findDuplicate, type DocKind } from "@/lib/parse-statement";
 import { money, dateShort } from "@/lib/format";
+import { toDateKey } from "@/lib/format";
 import { logAudit } from "@/lib/audit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -224,7 +225,7 @@ function ReviewScreen({ importId, onBack }: { importId: string; onBack: () => vo
     try {
       const rows = accepted.map((i) => ({
         user_id: user.id,
-        occurred_on: i.occurred_on ?? new Date().toISOString().slice(0, 10),
+        occurred_on: i.occurred_on ?? toDateKey(new Date()),
         type: i.tx_type,
         category: i.category,
         account_id: im.account_id,

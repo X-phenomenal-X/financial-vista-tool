@@ -22,7 +22,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useAllData } from "@/lib/queries";
-import { money } from "@/lib/format";
+import { money, parseLocalDate } from "@/lib/format";
 import { totalCash, highInterestDebt, utilization, CASH_BUFFER } from "@/lib/coach";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -214,7 +214,7 @@ function InsightsPage() {
     const currentExpenses = ctx.transactions
       .filter(
         (transaction) =>
-          transaction.type === "expense" && new Date(transaction.occurred_on) >= monthStart,
+          transaction.type === "expense" && parseLocalDate(transaction.occurred_on) >= monthStart,
       )
       .reduce((sum, item) => sum + Number(item.amount), 0);
     const plannedExpenses = ctx.budget

@@ -43,6 +43,7 @@ import {
 } from "@/lib/coach";
 import { money } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
+import { toDateKey } from "@/lib/format";
 
 const netWorthDb = supabase as unknown as SupabaseClient;
 
@@ -135,7 +136,7 @@ function NetWorthPage() {
       const { error } = await netWorthDb.from("net_worth_snapshots").upsert(
         {
           user_id: user.id,
-          snapshot_date: new Date().toISOString().slice(0, 10),
+          snapshot_date: toDateKey(new Date()),
           cash_total: cash,
           retirement_total: retirement,
           other_assets_total: otherAssets,
