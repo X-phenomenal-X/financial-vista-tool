@@ -36,22 +36,23 @@ function MonthlyReviewPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.id) return;
+    const userId = user?.id;
+    if (!userId) return;
     let cancelled = false;
     async function load() {
       setLoading(true);
       const [a, d, g, r] = await Promise.all([
-        supabase.from("accounts").select("id,name,kind,balance").eq("user_id", user.id),
-        supabase.from("debts").select("id,name,balance,pending,apr,credit_limit").eq("user_id", user.id),
-        supabase.from("goals").select("id,name,current_amount,target_amount").eq("user_id", user.id),
-        supabase.from("recurring_transactions").select("id,name,amount,kind,is_active").eq("user_id", user.id).eq("is_active", true),
+        supabase.from("accounts").select("id,name,kind,balance").eq("user_id", userId),
+        supabase.from("debts").select("id,name,balance,pending,apr,credit_limit").eq("user_id", userId),
+        supabase.from("goals").select("id,name,current_amount,target_amount").eq("user_id", userId),
+        supabase.from("recurring_transactions").select("id,name,amount,kind,is_active").eq("user_id", userId).eq("is_active", true),
       ]);
       if (!cancelled) {
         setAccounts((a.data ?? []) as Account[]);
         setDebts((d.data ?? []) as Debt[]);
         setGoals((g.data ?? []) as Goal[]);
         setRecurring((r.data ?? []) as Recurring[]);
-        const key = `wealthpilot-monthly-review:${user.id}:${new Date().toISOString().slice(0, 7)}`;
+        const key = `wealthpilot-monthly-review:${userId}:${new Date().toISOString().slice(0, 7)}`;
         try { setChecked(JSON.parse(localStorage.getItem(key) ?? "{}")); } catch { setChecked({}); }
         setLoading(false);
       }
