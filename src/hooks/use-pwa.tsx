@@ -107,9 +107,14 @@ export function PwaProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // On a first visit there is no controller yet, and the new worker's
+    // clients.claim() fires controllerchange during its initial activation.
+    // Reloading on that would bounce the page on every first load, so only
+    // treat it as an update when a controller was already in charge.
+    const hadController = Boolean(navigator.serviceWorker.controller);
     let reloading = false;
     const onControllerChange = () => {
-      if (reloading) return;
+      if (!hadController || reloading) return;
       reloading = true;
       window.location.reload();
     };
