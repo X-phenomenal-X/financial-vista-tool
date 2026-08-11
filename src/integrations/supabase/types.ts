@@ -278,6 +278,57 @@ export type Database = {
           },
         ]
       }
+      net_worth_snapshots: {
+        Row: {
+          assets_total: number | null
+          car_loan_total: number
+          cash_total: number
+          created_at: string
+          high_interest_debt_total: number
+          id: string
+          liabilities_total: number | null
+          net_worth: number | null
+          other_assets_total: number
+          other_liabilities_total: number
+          retirement_total: number
+          snapshot_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assets_total?: number | null
+          car_loan_total?: number
+          cash_total?: number
+          created_at?: string
+          high_interest_debt_total?: number
+          id?: string
+          liabilities_total?: number | null
+          net_worth?: number | null
+          other_assets_total?: number
+          other_liabilities_total?: number
+          retirement_total?: number
+          snapshot_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assets_total?: number | null
+          car_loan_total?: number
+          cash_total?: number
+          created_at?: string
+          high_interest_debt_total?: number
+          id?: string
+          liabilities_total?: number | null
+          net_worth?: number | null
+          other_assets_total?: number
+          other_liabilities_total?: number
+          retirement_total?: number
+          snapshot_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_log: {
         Row: {
           body: string | null
@@ -460,6 +511,143 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_transaction_occurrences: {
+        Row: {
+          actual_amount: number | null
+          completed_at: string | null
+          created_at: string
+          due_date: string
+          expected_amount: number
+          id: string
+          linked_transaction_id: string | null
+          metadata: Json
+          recurring_transaction_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_amount?: number | null
+          completed_at?: string | null
+          created_at?: string
+          due_date: string
+          expected_amount: number
+          id?: string
+          linked_transaction_id?: string | null
+          metadata?: Json
+          recurring_transaction_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual_amount?: number | null
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string
+          expected_amount?: number
+          id?: string
+          linked_transaction_id?: string | null
+          metadata?: Json
+          recurring_transaction_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_transaction_occurrences_recurring_transaction_id_fkey"
+            columns: ["recurring_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_transactions: {
+        Row: {
+          account_id: string | null
+          amount: number
+          autopay: boolean
+          cadence: Database["public"]["Enums"]["recurring_cadence"]
+          category: string | null
+          created_at: string
+          currency: string
+          custom_interval_days: number | null
+          debt_id: string | null
+          description: string | null
+          end_date: string | null
+          goal_id: string | null
+          id: string
+          is_active: boolean
+          kind: Database["public"]["Enums"]["recurring_transaction_kind"]
+          last_generated_at: string | null
+          merchant: string | null
+          metadata: Json
+          name: string
+          next_due_date: string
+          reminder_days_before: number[]
+          source: Database["public"]["Enums"]["recurring_source"]
+          start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          autopay?: boolean
+          cadence: Database["public"]["Enums"]["recurring_cadence"]
+          category?: string | null
+          created_at?: string
+          currency?: string
+          custom_interval_days?: number | null
+          debt_id?: string | null
+          description?: string | null
+          end_date?: string | null
+          goal_id?: string | null
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["recurring_transaction_kind"]
+          last_generated_at?: string | null
+          merchant?: string | null
+          metadata?: Json
+          name: string
+          next_due_date: string
+          reminder_days_before?: number[]
+          source?: Database["public"]["Enums"]["recurring_source"]
+          start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          autopay?: boolean
+          cadence?: Database["public"]["Enums"]["recurring_cadence"]
+          category?: string | null
+          created_at?: string
+          currency?: string
+          custom_interval_days?: number | null
+          debt_id?: string | null
+          description?: string | null
+          end_date?: string | null
+          goal_id?: string | null
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["recurring_transaction_kind"]
+          last_generated_at?: string | null
+          merchant?: string | null
+          metadata?: Json
+          name?: string
+          next_due_date?: string
+          reminder_days_before?: number[]
+          source?: Database["public"]["Enums"]["recurring_source"]
+          start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       reminders: {
         Row: {
           completed: boolean
@@ -583,6 +771,48 @@ export type Database = {
           },
         ]
       }
+      transaction_rules: {
+        Row: {
+          action: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          match_field: string
+          match_operator: string
+          match_value: string
+          name: string
+          priority: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          match_field: string
+          match_operator: string
+          match_value: string
+          name: string
+          priority?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          match_field?: string
+          match_operator?: string
+          match_value?: string
+          name?: string
+          priority?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           account_id: string | null
@@ -652,9 +882,38 @@ export type Database = {
     }
     Functions: {
       is_signup_open: { Args: never; Returns: boolean }
+      next_recurring_date: {
+        Args: {
+          cadence_value: Database["public"]["Enums"]["recurring_cadence"]
+          current_date_value: string
+          interval_days?: number
+        }
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      recurring_cadence:
+        | "weekly"
+        | "biweekly"
+        | "semimonthly"
+        | "monthly"
+        | "quarterly"
+        | "semiannual"
+        | "annual"
+        | "custom"
+      recurring_source:
+        | "manual"
+        | "statement_detection"
+        | "transaction_rule"
+        | "payday_plan"
+        | "import"
+      recurring_transaction_kind:
+        | "income"
+        | "expense"
+        | "transfer"
+        | "debt_payment"
+        | "subscription"
+        | "bill"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -781,6 +1040,32 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      recurring_cadence: [
+        "weekly",
+        "biweekly",
+        "semimonthly",
+        "monthly",
+        "quarterly",
+        "semiannual",
+        "annual",
+        "custom",
+      ],
+      recurring_source: [
+        "manual",
+        "statement_detection",
+        "transaction_rule",
+        "payday_plan",
+        "import",
+      ],
+      recurring_transaction_kind: [
+        "income",
+        "expense",
+        "transfer",
+        "debt_payment",
+        "subscription",
+        "bill",
+      ],
+    },
   },
 } as const

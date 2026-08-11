@@ -58,7 +58,10 @@ const NAV_SECTIONS = [
   },
 ] as const;
 
-const ALL_NAV = [...NAV_SECTIONS.flatMap((section) => section.items), TABS[4]];
+const ALL_NAV: { to: string; label: string }[] = [
+  ...NAV_SECTIONS.flatMap((section) => section.items.map((item) => ({ to: item.to as string, label: item.label as string }))),
+  { to: TABS[4].to as string, label: TABS[4].label as string },
+];
 
 export function AppShell() {
   const [open, setOpen] = useState(false);

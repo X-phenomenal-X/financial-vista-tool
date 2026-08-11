@@ -13,13 +13,23 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUploadsRouteImport } from './routes/_authenticated/uploads'
+import { Route as AuthenticatedSubscriptionsRouteImport } from './routes/_authenticated/subscriptions'
+import { Route as AuthenticatedSimulatorRouteImport } from './routes/_authenticated/simulator'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedScenarioPlannerRouteImport } from './routes/_authenticated/scenario-planner'
 import { Route as AuthenticatedPaydayRouteImport } from './routes/_authenticated/payday'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedNetWorthRouteImport } from './routes/_authenticated/net-worth'
 import { Route as AuthenticatedMoreRouteImport } from './routes/_authenticated/more'
+import { Route as AuthenticatedMonthlyReviewRouteImport } from './routes/_authenticated/monthly-review'
+import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
 import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/goals'
+import { Route as AuthenticatedFinancialHealthRouteImport } from './routes/_authenticated/financial-health'
 import { Route as AuthenticatedDebtsRouteImport } from './routes/_authenticated/debts'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCashFlowRouteImport } from './routes/_authenticated/cash-flow'
 import { Route as AuthenticatedBudgetRouteImport } from './routes/_authenticated/budget'
+import { Route as AuthenticatedBillCalendarRouteImport } from './routes/_authenticated/bill-calendar'
 import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
@@ -43,14 +53,42 @@ const AuthenticatedUploadsRoute = AuthenticatedUploadsRouteImport.update({
   path: '/uploads',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSubscriptionsRoute =
+  AuthenticatedSubscriptionsRouteImport.update({
+    id: '/subscriptions',
+    path: '/subscriptions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSimulatorRoute = AuthenticatedSimulatorRouteImport.update({
+  id: '/simulator',
+  path: '/simulator',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedScenarioPlannerRoute =
+  AuthenticatedScenarioPlannerRouteImport.update({
+    id: '/scenario-planner',
+    path: '/scenario-planner',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPaydayRoute = AuthenticatedPaydayRouteImport.update({
   id: '/payday',
   path: '/payday',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedNetWorthRoute = AuthenticatedNetWorthRouteImport.update({
+  id: '/net-worth',
+  path: '/net-worth',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMoreRoute = AuthenticatedMoreRouteImport.update({
@@ -58,11 +96,28 @@ const AuthenticatedMoreRoute = AuthenticatedMoreRouteImport.update({
   path: '/more',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMonthlyReviewRoute =
+  AuthenticatedMonthlyReviewRouteImport.update({
+    id: '/monthly-review',
+    path: '/monthly-review',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedInsightsRoute = AuthenticatedInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGoalsRoute = AuthenticatedGoalsRouteImport.update({
   id: '/goals',
   path: '/goals',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFinancialHealthRoute =
+  AuthenticatedFinancialHealthRouteImport.update({
+    id: '/financial-health',
+    path: '/financial-health',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDebtsRoute = AuthenticatedDebtsRouteImport.update({
   id: '/debts',
   path: '/debts',
@@ -73,11 +128,22 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCashFlowRoute = AuthenticatedCashFlowRouteImport.update({
+  id: '/cash-flow',
+  path: '/cash-flow',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBudgetRoute = AuthenticatedBudgetRouteImport.update({
   id: '/budget',
   path: '/budget',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBillCalendarRoute =
+  AuthenticatedBillCalendarRouteImport.update({
+    id: '/bill-calendar',
+    path: '/bill-calendar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAutomationsRoute =
   AuthenticatedAutomationsRouteImport.update({
     id: '/automations',
@@ -101,13 +167,23 @@ export interface FileRoutesByFullPath {
   '/activity': typeof AuthenticatedActivityRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/automations': typeof AuthenticatedAutomationsRoute
+  '/bill-calendar': typeof AuthenticatedBillCalendarRoute
   '/budget': typeof AuthenticatedBudgetRoute
+  '/cash-flow': typeof AuthenticatedCashFlowRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/debts': typeof AuthenticatedDebtsRoute
+  '/financial-health': typeof AuthenticatedFinancialHealthRoute
   '/goals': typeof AuthenticatedGoalsRoute
+  '/insights': typeof AuthenticatedInsightsRoute
+  '/monthly-review': typeof AuthenticatedMonthlyReviewRoute
   '/more': typeof AuthenticatedMoreRoute
+  '/net-worth': typeof AuthenticatedNetWorthRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/payday': typeof AuthenticatedPaydayRoute
+  '/scenario-planner': typeof AuthenticatedScenarioPlannerRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/simulator': typeof AuthenticatedSimulatorRoute
+  '/subscriptions': typeof AuthenticatedSubscriptionsRoute
   '/uploads': typeof AuthenticatedUploadsRoute
 }
 export interface FileRoutesByTo {
@@ -116,13 +192,23 @@ export interface FileRoutesByTo {
   '/activity': typeof AuthenticatedActivityRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/automations': typeof AuthenticatedAutomationsRoute
+  '/bill-calendar': typeof AuthenticatedBillCalendarRoute
   '/budget': typeof AuthenticatedBudgetRoute
+  '/cash-flow': typeof AuthenticatedCashFlowRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/debts': typeof AuthenticatedDebtsRoute
+  '/financial-health': typeof AuthenticatedFinancialHealthRoute
   '/goals': typeof AuthenticatedGoalsRoute
+  '/insights': typeof AuthenticatedInsightsRoute
+  '/monthly-review': typeof AuthenticatedMonthlyReviewRoute
   '/more': typeof AuthenticatedMoreRoute
+  '/net-worth': typeof AuthenticatedNetWorthRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/payday': typeof AuthenticatedPaydayRoute
+  '/scenario-planner': typeof AuthenticatedScenarioPlannerRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/simulator': typeof AuthenticatedSimulatorRoute
+  '/subscriptions': typeof AuthenticatedSubscriptionsRoute
   '/uploads': typeof AuthenticatedUploadsRoute
 }
 export interface FileRoutesById {
@@ -133,13 +219,23 @@ export interface FileRoutesById {
   '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
+  '/_authenticated/bill-calendar': typeof AuthenticatedBillCalendarRoute
   '/_authenticated/budget': typeof AuthenticatedBudgetRoute
+  '/_authenticated/cash-flow': typeof AuthenticatedCashFlowRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/debts': typeof AuthenticatedDebtsRoute
+  '/_authenticated/financial-health': typeof AuthenticatedFinancialHealthRoute
   '/_authenticated/goals': typeof AuthenticatedGoalsRoute
+  '/_authenticated/insights': typeof AuthenticatedInsightsRoute
+  '/_authenticated/monthly-review': typeof AuthenticatedMonthlyReviewRoute
   '/_authenticated/more': typeof AuthenticatedMoreRoute
+  '/_authenticated/net-worth': typeof AuthenticatedNetWorthRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/payday': typeof AuthenticatedPaydayRoute
+  '/_authenticated/scenario-planner': typeof AuthenticatedScenarioPlannerRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/simulator': typeof AuthenticatedSimulatorRoute
+  '/_authenticated/subscriptions': typeof AuthenticatedSubscriptionsRoute
   '/_authenticated/uploads': typeof AuthenticatedUploadsRoute
 }
 export interface FileRouteTypes {
@@ -150,13 +246,23 @@ export interface FileRouteTypes {
     | '/activity'
     | '/assistant'
     | '/automations'
+    | '/bill-calendar'
     | '/budget'
+    | '/cash-flow'
     | '/dashboard'
     | '/debts'
+    | '/financial-health'
     | '/goals'
+    | '/insights'
+    | '/monthly-review'
     | '/more'
+    | '/net-worth'
+    | '/notifications'
     | '/payday'
+    | '/scenario-planner'
     | '/settings'
+    | '/simulator'
+    | '/subscriptions'
     | '/uploads'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,13 +271,23 @@ export interface FileRouteTypes {
     | '/activity'
     | '/assistant'
     | '/automations'
+    | '/bill-calendar'
     | '/budget'
+    | '/cash-flow'
     | '/dashboard'
     | '/debts'
+    | '/financial-health'
     | '/goals'
+    | '/insights'
+    | '/monthly-review'
     | '/more'
+    | '/net-worth'
+    | '/notifications'
     | '/payday'
+    | '/scenario-planner'
     | '/settings'
+    | '/simulator'
+    | '/subscriptions'
     | '/uploads'
   id:
     | '__root__'
@@ -181,13 +297,23 @@ export interface FileRouteTypes {
     | '/_authenticated/activity'
     | '/_authenticated/assistant'
     | '/_authenticated/automations'
+    | '/_authenticated/bill-calendar'
     | '/_authenticated/budget'
+    | '/_authenticated/cash-flow'
     | '/_authenticated/dashboard'
     | '/_authenticated/debts'
+    | '/_authenticated/financial-health'
     | '/_authenticated/goals'
+    | '/_authenticated/insights'
+    | '/_authenticated/monthly-review'
     | '/_authenticated/more'
+    | '/_authenticated/net-worth'
+    | '/_authenticated/notifications'
     | '/_authenticated/payday'
+    | '/_authenticated/scenario-planner'
     | '/_authenticated/settings'
+    | '/_authenticated/simulator'
+    | '/_authenticated/subscriptions'
     | '/_authenticated/uploads'
   fileRoutesById: FileRoutesById
 }
@@ -227,11 +353,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUploadsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/subscriptions': {
+      id: '/_authenticated/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/subscriptions'
+      preLoaderRoute: typeof AuthenticatedSubscriptionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/simulator': {
+      id: '/_authenticated/simulator'
+      path: '/simulator'
+      fullPath: '/simulator'
+      preLoaderRoute: typeof AuthenticatedSimulatorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/scenario-planner': {
+      id: '/_authenticated/scenario-planner'
+      path: '/scenario-planner'
+      fullPath: '/scenario-planner'
+      preLoaderRoute: typeof AuthenticatedScenarioPlannerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/payday': {
@@ -241,6 +388,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPaydayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/net-worth': {
+      id: '/_authenticated/net-worth'
+      path: '/net-worth'
+      fullPath: '/net-worth'
+      preLoaderRoute: typeof AuthenticatedNetWorthRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/more': {
       id: '/_authenticated/more'
       path: '/more'
@@ -248,11 +409,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMoreRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/monthly-review': {
+      id: '/_authenticated/monthly-review'
+      path: '/monthly-review'
+      fullPath: '/monthly-review'
+      preLoaderRoute: typeof AuthenticatedMonthlyReviewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/insights': {
+      id: '/_authenticated/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof AuthenticatedInsightsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/goals': {
       id: '/_authenticated/goals'
       path: '/goals'
       fullPath: '/goals'
       preLoaderRoute: typeof AuthenticatedGoalsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/financial-health': {
+      id: '/_authenticated/financial-health'
+      path: '/financial-health'
+      fullPath: '/financial-health'
+      preLoaderRoute: typeof AuthenticatedFinancialHealthRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/debts': {
@@ -269,11 +451,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cash-flow': {
+      id: '/_authenticated/cash-flow'
+      path: '/cash-flow'
+      fullPath: '/cash-flow'
+      preLoaderRoute: typeof AuthenticatedCashFlowRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/budget': {
       id: '/_authenticated/budget'
       path: '/budget'
       fullPath: '/budget'
       preLoaderRoute: typeof AuthenticatedBudgetRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/bill-calendar': {
+      id: '/_authenticated/bill-calendar'
+      path: '/bill-calendar'
+      fullPath: '/bill-calendar'
+      preLoaderRoute: typeof AuthenticatedBillCalendarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/automations': {
@@ -304,13 +500,23 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedAutomationsRoute: typeof AuthenticatedAutomationsRoute
+  AuthenticatedBillCalendarRoute: typeof AuthenticatedBillCalendarRoute
   AuthenticatedBudgetRoute: typeof AuthenticatedBudgetRoute
+  AuthenticatedCashFlowRoute: typeof AuthenticatedCashFlowRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDebtsRoute: typeof AuthenticatedDebtsRoute
+  AuthenticatedFinancialHealthRoute: typeof AuthenticatedFinancialHealthRoute
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRoute
+  AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
+  AuthenticatedMonthlyReviewRoute: typeof AuthenticatedMonthlyReviewRoute
   AuthenticatedMoreRoute: typeof AuthenticatedMoreRoute
+  AuthenticatedNetWorthRoute: typeof AuthenticatedNetWorthRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPaydayRoute: typeof AuthenticatedPaydayRoute
+  AuthenticatedScenarioPlannerRoute: typeof AuthenticatedScenarioPlannerRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSimulatorRoute: typeof AuthenticatedSimulatorRoute
+  AuthenticatedSubscriptionsRoute: typeof AuthenticatedSubscriptionsRoute
   AuthenticatedUploadsRoute: typeof AuthenticatedUploadsRoute
 }
 
@@ -318,13 +524,23 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActivityRoute: AuthenticatedActivityRoute,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedAutomationsRoute: AuthenticatedAutomationsRoute,
+  AuthenticatedBillCalendarRoute: AuthenticatedBillCalendarRoute,
   AuthenticatedBudgetRoute: AuthenticatedBudgetRoute,
+  AuthenticatedCashFlowRoute: AuthenticatedCashFlowRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDebtsRoute: AuthenticatedDebtsRoute,
+  AuthenticatedFinancialHealthRoute: AuthenticatedFinancialHealthRoute,
   AuthenticatedGoalsRoute: AuthenticatedGoalsRoute,
+  AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
+  AuthenticatedMonthlyReviewRoute: AuthenticatedMonthlyReviewRoute,
   AuthenticatedMoreRoute: AuthenticatedMoreRoute,
+  AuthenticatedNetWorthRoute: AuthenticatedNetWorthRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPaydayRoute: AuthenticatedPaydayRoute,
+  AuthenticatedScenarioPlannerRoute: AuthenticatedScenarioPlannerRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSimulatorRoute: AuthenticatedSimulatorRoute,
+  AuthenticatedSubscriptionsRoute: AuthenticatedSubscriptionsRoute,
   AuthenticatedUploadsRoute: AuthenticatedUploadsRoute,
 }
 
