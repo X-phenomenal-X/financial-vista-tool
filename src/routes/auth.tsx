@@ -207,7 +207,7 @@ function AuthPage() {
                     key={item}
                     type="button"
                     onClick={() => setMode(item)}
-                    className={`relative rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                    className={`relative min-h-11 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
                       mode === item
                         ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/20"
                         : "text-white/45 hover:text-white/75"
@@ -239,7 +239,7 @@ function AuthPage() {
                       <button
                         type="button"
                         onClick={resetPassword}
-                        className="text-xs font-medium text-violet-300 transition hover:text-violet-200"
+                        className="-my-2 -mr-2 min-h-11 px-2 py-2 text-xs font-medium text-violet-300 transition hover:text-violet-200"
                       >
                         Forgot password?
                       </button>
@@ -262,7 +262,7 @@ function AuthPage() {
                       type="button"
                       aria-label={showPassword ? "Hide password" : "Show password"}
                       onClick={() => setShowPassword((value) => !value)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-white/35 transition hover:bg-white/5 hover:text-white/75"
+                      className="absolute right-1.5 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-lg text-white/35 transition hover:bg-white/5 hover:text-white/75"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>

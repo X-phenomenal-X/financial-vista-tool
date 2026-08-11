@@ -127,7 +127,12 @@ Deno.serve(async (request) => {
         .update({ last_synced_at: new Date().toISOString(), last_error: null, status: "active" })
         .eq("item_id", itemId);
 
-      return jsonResponse({ imported: 0, removed: removed.length, import_id: null, skipped: candidates.length });
+      return jsonResponse({
+        imported: 0,
+        removed: removed.length,
+        import_id: null,
+        skipped: candidates.length,
+      });
     }
 
     // ---- File them as an import for review -------------------------------
@@ -188,7 +193,10 @@ Deno.serve(async (request) => {
     // Record the failure against the connection so the UI can show it.
     const code = (error as { plaidErrorCode?: string })?.plaidErrorCode;
     try {
-      const body = await request.clone().json().catch(() => ({}));
+      const body = await request
+        .clone()
+        .json()
+        .catch(() => ({}));
       if (body?.item_id) {
         await serviceClient()
           .from("plaid_items")

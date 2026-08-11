@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   AlertTriangle,
   ArrowRight,
@@ -61,24 +61,34 @@ function BudgetPage() {
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const elapsedPct = Math.min(100, (now.getDate() / daysInMonth) * 100);
 
-  const rows: BudgetRow[] = cats.map((category) => {
-    const actual = tx
-      .filter(
-        (transaction) =>
-          transaction.category === category.name &&
-          parseLocalDate(transaction.occurred_on) >= monthStart &&
-          countsAsSpend(transaction),
-      )
-      .reduce((sum, transaction) => sum + spendAmount(transaction), 0);
-    const planned = Number(category.planned);
-    return {
-      ...category,
-      planned,
-      actual,
-      remaining: planned - actual,
-      pct: planned > 0 ? Math.min(100, (actual / planned) * 100) : 0,
-    };
-  });
+  // Bucket spending by category in a single pass.
+  //
+  // This previously scanned the whole transaction list once per category,
+  // re-parsing every date each time — O(categories x transactions) on every
+  // render, repeated whenever a tab or "show all" toggled. One pass and a
+  // lookup gives the same numbers for a fraction of the work.
+  const monthStartMs = monthStart.getTime();
+  const rows: BudgetRow[] = useMemo(() => {
+    const spentByCategory = new Map<string, number>();
+    for (const transaction of tx) {
+      if (!countsAsSpend(transaction)) continue;
+      if (parseLocalDate(transaction.occurred_on).getTime() < monthStartMs) continue;
+      const key = transaction.category ?? "";
+      spentByCategory.set(key, (spentByCategory.get(key) ?? 0) + spendAmount(transaction));
+    }
+
+    return cats.map((category) => {
+      const actual = spentByCategory.get(category.name) ?? 0;
+      const planned = Number(category.planned);
+      return {
+        ...category,
+        planned,
+        actual,
+        remaining: planned - actual,
+        pct: planned > 0 ? Math.min(100, (actual / planned) * 100) : 0,
+      };
+    });
+  }, [cats, tx, monthStartMs]);
 
   // Card payments are tracked separately from spending on purpose.
   //

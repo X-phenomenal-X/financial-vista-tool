@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Bell, CheckCheck, CalendarClock, RefreshCw, CreditCard, WalletCards } from "lucide-react";
+import {
+  Bell,
+  CheckCheck,
+  CalendarClock,
+  RefreshCw,
+  CreditCard,
+  WalletCards,
+  AlertTriangle,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -33,27 +41,43 @@ function NotificationCenter() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [history, setHistory] = useState<Tables<"notification_log">[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const [{ data: recurring }, { data: accounts }, { data: debts }, { data: log }] =
-      await Promise.all([
-        supabase
-          .from("recurring_transactions")
-          .select("id,name,kind,amount,next_due_date,is_active,autopay")
-          .eq("is_active", true)
-          .order("next_due_date"),
-        supabase.from("accounts").select("balance"),
-        supabase
-          .from("debts")
-          .select("id,name,balance,pending,credit_limit,status,due_date,minimum_payment"),
-        supabase
-          .from("notification_log")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(50),
-      ]);
+    const [recurringResult, accountsResult, debtsResult, logResult] = await Promise.all([
+      supabase
+        .from("recurring_transactions")
+        .select("id,name,kind,amount,next_due_date,is_active,autopay")
+        .eq("is_active", true)
+        .order("next_due_date"),
+      supabase.from("accounts").select("balance"),
+      supabase
+        .from("debts")
+        .select("id,name,balance,pending,credit_limit,status,due_date,minimum_payment"),
+      supabase
+        .from("notification_log")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+
+    // Reading only `.data` turned a failed query into "no alerts", which is
+    // the most dangerous possible failure mode for a screen whose whole job
+    // is warning you about overdue payments.
+    const failed = [recurringResult, accountsResult, debtsResult, logResult].find((r) => r.error);
+    if (failed) {
+      setError(failed.error?.message ?? "Could not load your alerts");
+      setLoading(false);
+      return;
+    }
+    setError(null);
+
+    const recurring = recurringResult.data;
+    const accounts = accountsResult.data;
+    const debts = debtsResult.data;
+    const log = logResult.data;
 
     const next: AlertItem[] = [];
     const cash = (accounts ?? []).reduce((sum, account) => sum + Number(account.balance || 0), 0);
@@ -183,6 +207,21 @@ function NotificationCenter() {
           {unread} unread
         </div>
       </header>
+
+      {error && (
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm"
+        >
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+          <div className="min-w-0">
+            <div className="font-semibold text-destructive">Alerts could not be checked</div>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {error} — treat an empty list as unknown, not as "nothing is due".
+            </p>
+          </div>
+        </div>
+      )}
 
       <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex items-center justify-between">

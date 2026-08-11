@@ -87,7 +87,11 @@ export type PlaidAccount = {
   mask?: string | null;
   type: string;
   subtype?: string | null;
-  balances?: { current?: number | null; available?: number | null; iso_currency_code?: string | null };
+  balances?: {
+    current?: number | null;
+    available?: number | null;
+    iso_currency_code?: string | null;
+  };
 };
 
 /**

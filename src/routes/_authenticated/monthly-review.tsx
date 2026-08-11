@@ -8,6 +8,7 @@ import {
   Flag,
   ShieldCheck,
   WalletCards,
+  TriangleAlert,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,6 +69,19 @@ function money(value: number) {
   }).format(value);
 }
 
+/**
+ * Storage key for this month's checklist.
+ *
+ * toISOString() would give the UTC month, so on the last evening of a month
+ * in Toronto the key rolled over early and the checklist appeared to reset
+ * hours before the month actually ended.
+ */
+function reviewStorageKey(userId: string) {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  return `wealthpilot-monthly-review:${userId}:${now.getFullYear()}-${month}`;
+}
+
 function MonthlyReviewPage() {
   const { user } = useAuth();
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -76,6 +90,7 @@ function MonthlyReviewPage() {
   const [recurring, setRecurring] = useState<Recurring[]>([]);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const userId = user?.id;
@@ -97,13 +112,23 @@ function MonthlyReviewPage() {
           .eq("is_active", true),
       ]);
       if (!cancelled) {
+        // Every result carries its own error. Reading only `.data` turned a
+        // failed query into an empty screen, so a missing table or an RLS
+        // problem looked exactly like "you have no goals yet".
+        const failed = [a, d, g, r].find((result) => result.error);
+        if (failed) {
+          setError(failed.error?.message ?? "Could not load your monthly review");
+          setLoading(false);
+          return;
+        }
+
+        setError(null);
         setAccounts((a.data ?? []) as Account[]);
         setDebts((d.data ?? []) as Debt[]);
         setGoals((g.data ?? []) as Goal[]);
         setRecurring((r.data ?? []) as Recurring[]);
-        const key = `wealthpilot-monthly-review:${uid}:${new Date().toISOString().slice(0, 7)}`;
         try {
-          setChecked(JSON.parse(localStorage.getItem(key) ?? "{}"));
+          setChecked(JSON.parse(localStorage.getItem(reviewStorageKey(uid)) ?? "{}"));
         } catch {
           setChecked({});
         }
@@ -197,7 +222,7 @@ function MonthlyReviewPage() {
     const next = { ...checked, [id]: !checked[id] };
     setChecked(next);
     if (user?.id) {
-      const key = `wealthpilot-monthly-review:${user.id}:${new Date().toISOString().slice(0, 7)}`;
+      const key = reviewStorageKey(user.id);
       localStorage.setItem(key, JSON.stringify(next));
     }
   }
@@ -235,6 +260,21 @@ function MonthlyReviewPage() {
           />
         </div>
       </section>
+
+      {error && (
+        <section
+          role="alert"
+          className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm"
+        >
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+          <div className="min-w-0">
+            <div className="font-semibold text-destructive">Could not load your figures</div>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {error} — the numbers below are incomplete, so don't act on them until this clears.
+            </p>
+          </div>
+        </section>
+      )}
 
       <section className="grid grid-cols-2 gap-3">
         <Metric icon={WalletCards} label="Cash" value={loading ? "—" : money(summary.cash)} />
