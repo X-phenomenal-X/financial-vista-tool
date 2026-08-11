@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/use-auth";
 import { daysInMonthLeft, money, parseLocalDate } from "@/lib/format";
-import { countsAsSpend } from "@/lib/coach";
+import { countsAsSpend, spendAmount } from "@/lib/coach";
 import { useBudget, useTransactions } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/budget")({
@@ -69,7 +69,7 @@ function BudgetPage() {
           parseLocalDate(transaction.occurred_on) >= monthStart &&
           countsAsSpend(transaction),
       )
-      .reduce((sum, transaction) => sum + Math.abs(Number(transaction.amount)), 0);
+      .reduce((sum, transaction) => sum + spendAmount(transaction), 0);
     const planned = Number(category.planned);
     return {
       ...category,

@@ -44,6 +44,20 @@ export function countsAsSpend(transaction: Pick<Transaction, "type">) {
   return transaction.type === "expense" || transaction.type === "debt_payment";
 }
 
+/**
+ * How much a transaction adds to a spending total, as a positive number.
+ *
+ * Outflows are stored negative — quick-add saves
+ * `signed = type === "income" ? amt : -amt` — so summing raw amounts gave
+ * negative "actual" totals. A negative actual can never exceed a planned
+ * amount, which silently disabled every over-budget check in the app and
+ * made "Where did my money go?" report no spending at all.
+ */
+export function spendAmount(transaction: Pick<Transaction, "amount">) {
+  const value = Number(transaction.amount);
+  return Number.isFinite(value) ? Math.abs(value) : 0;
+}
+
 const CASH_KINDS = new Set(["chequing", "savings", "money_master"]);
 const RETIREMENT_KINDS = new Set(["rrsp", "dpsp"]);
 
@@ -228,7 +242,7 @@ function budgetProgress(ctx: CoachContext) {
             parseLocalDate(transaction.occurred_on) >= monthStart &&
             countsAsSpend(transaction),
         )
-        .reduce((sum, transaction) => sum + Number(transaction.amount), 0);
+        .reduce((sum, transaction) => sum + spendAmount(transaction), 0);
       return {
         name: item.name,
         planned: Number(item.planned),
@@ -286,8 +300,8 @@ export function changesSinceLastPayday(ctx: CoachContext): string {
 
   const transactions = ctx.transactions.filter((transaction) => parseLocalDate(transaction.occurred_on) >= parseLocalDate(since));
   const income = transactions.filter((transaction) => transaction.type === "income").reduce((sum, item) => sum + Number(item.amount), 0);
-  const expenses = transactions.filter((transaction) => transaction.type === "expense").reduce((sum, item) => sum + Number(item.amount), 0);
-  const debtPayments = transactions.filter((transaction) => transaction.type === "debt_payment").reduce((sum, item) => sum + Number(item.amount), 0);
+  const expenses = transactions.filter((transaction) => transaction.type === "expense").reduce((sum, item) => sum + spendAmount(item), 0);
+  const debtPayments = transactions.filter((transaction) => transaction.type === "debt_payment").reduce((sum, item) => sum + spendAmount(item), 0);
   const importCount = pendingImports(ctx).length;
 
   return [
