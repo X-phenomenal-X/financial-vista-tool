@@ -18,10 +18,14 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-violet-grad font-display text-3xl shadow-elevated ring-1 ring-white/15">W</div>
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-violet-grad font-display text-3xl shadow-elevated ring-1 ring-white/15">
+          W
+        </div>
         <div className="eyebrow mt-7">Navigation error</div>
         <h1 className="mt-2 font-display text-7xl text-foreground">404</h1>
-        <h2 className="mt-3 text-xl font-semibold tracking-tight text-foreground">This route is off course</h2>
+        <h2 className="mt-3 text-xl font-semibold tracking-tight text-foreground">
+          This route is off course
+        </h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           The page does not exist or has moved to another part of your Wealthpilot workspace.
         </p>
@@ -49,9 +53,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="ui-card max-w-md rounded-3xl border border-white/[0.08] bg-card p-8 text-center shadow-elevated">
-        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-destructive/20 bg-destructive/12 text-xl font-bold text-destructive">!</div>
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-destructive/20 bg-destructive/12 text-xl font-bold text-destructive">
+          !
+        </div>
         <div className="eyebrow mt-6">System interruption</div>
-        <h1 className="mt-2 font-display text-3xl tracking-tight text-foreground">This page did not load</h1>
+        <h1 className="mt-2 font-display text-3xl tracking-tight text-foreground">
+          This page did not load
+        </h1>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           Something interrupted the request. Try again or return to your dashboard.
         </p>
@@ -83,7 +91,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Wealthpilot — Private Finance OS" },
-      { name: "description", content: "A private financial command center for cash flow, budgets, debt payoff, goals, and smarter decisions." },
+      {
+        name: "description",
+        content:
+          "A private financial command center for cash flow, budgets, debt payoff, goals, and smarter decisions.",
+      },
       { name: "author", content: "Wealthpilot" },
       { name: "theme-color", content: "#100d18" },
       // Home-screen install support. iOS still reads the apple-prefixed tags, and
@@ -105,6 +117,81 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
+      // iOS launch images. Safari needs one per device profile with an exact
+      // media query; anything unmatched falls back to the manifest's
+      // background_color, which is the same colour.
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)",
+        href: "/splash-640x1136.png",
+      },
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)",
+        href: "/splash-750x1334.png",
+      },
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        href: "/splash-1242x2208.png",
+      },
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        href: "/splash-1125x2436.png",
+      },
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)",
+        href: "/splash-828x1792.png",
+      },
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        href: "/splash-1242x2688.png",
+      },
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        href: "/splash-1170x2532.png",
+      },
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        href: "/splash-1284x2778.png",
+      },
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        href: "/splash-1179x2556.png",
+      },
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        href: "/splash-1290x2796.png",
+      },
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        href: "/splash-1206x2622.png",
+      },
+      {
+        rel: "apple-touch-startup-image",
+        media:
+          "(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+        href: "/splash-1320x2868.png",
+      },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
