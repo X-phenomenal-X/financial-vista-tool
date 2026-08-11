@@ -9,7 +9,9 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "node --experimental-strip-types --import ./test/register.mjs --test \"test/*.test.ts\"",
+    "test:watch": "node --experimental-strip-types --import ./test/register.mjs --test --watch \"test/*.test.ts\""
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

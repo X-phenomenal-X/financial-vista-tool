@@ -51,6 +51,11 @@ function iso(y: number, m: number, d: number) {
   if (m < 0 || m > 11 || d < 1 || d > 31) return null;
   const dt = new Date(Date.UTC(y, m, d));
   if (Number.isNaN(dt.getTime())) return null;
+  // Date.UTC rolls impossible dates forward rather than rejecting them, so
+  // Feb 31 became Mar 3 — a garbled statement date silently turned into a
+  // real-looking date in the wrong month, and then into the wrong month's
+  // budget. Confirm the components survived the round trip.
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m || dt.getUTCDate() !== d) return null;
   return dt.toISOString().slice(0, 10);
 }
 
