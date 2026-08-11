@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useAllData } from "@/lib/queries";
 import { money, parseLocalDate } from "@/lib/format";
-import { totalCash, highInterestDebt, utilization, CASH_BUFFER } from "@/lib/coach";
+import { totalCash, highInterestDebt, utilization, countsAsSpend, CASH_BUFFER } from "@/lib/coach";
 import { supabase } from "@/integrations/supabase/client";
 
 const recurringDb = supabase as unknown as SupabaseClient;
@@ -214,7 +214,7 @@ function InsightsPage() {
     const currentExpenses = ctx.transactions
       .filter(
         (transaction) =>
-          transaction.type === "expense" && parseLocalDate(transaction.occurred_on) >= monthStart,
+          countsAsSpend(transaction) && parseLocalDate(transaction.occurred_on) >= monthStart,
       )
       .reduce((sum, item) => sum + Number(item.amount), 0);
     const plannedExpenses = ctx.budget

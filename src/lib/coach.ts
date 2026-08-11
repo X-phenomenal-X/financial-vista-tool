@@ -26,6 +26,24 @@ export interface CoachContext {
 export const CASH_BUFFER = 500;
 export const CC_TARGET = 1800;
 
+/**
+ * Whether a transaction counts toward a budget category's actual spend.
+ *
+ * Four screens each answered this differently, so the same category could
+ * show a different "actual" depending on where you looked.
+ *
+ * - Transfers never count: the full rent payment and the roommates'
+ *   contributions move through the account without being personal spending.
+ * - Income never counts. Filtering only on "not a transfer" meant a deposit
+ *   tagged with an expense category was added to that category's spend,
+ *   inventing overages out of money that arrived.
+ * - Debt payments do count, because "debt payments" is a budgeted line with
+ *   its own monthly target.
+ */
+export function countsAsSpend(transaction: Pick<Transaction, "type">) {
+  return transaction.type === "expense" || transaction.type === "debt_payment";
+}
+
 const CASH_KINDS = new Set(["chequing", "savings", "money_master"]);
 const RETIREMENT_KINDS = new Set(["rrsp", "dpsp"]);
 
@@ -208,7 +226,7 @@ function budgetProgress(ctx: CoachContext) {
           (transaction) =>
             transaction.category === item.name &&
             parseLocalDate(transaction.occurred_on) >= monthStart &&
-            transaction.type !== "transfer",
+            countsAsSpend(transaction),
         )
         .reduce((sum, transaction) => sum + Number(transaction.amount), 0);
       return {
