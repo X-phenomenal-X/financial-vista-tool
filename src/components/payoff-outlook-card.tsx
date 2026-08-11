@@ -103,7 +103,10 @@ export function PayoffOutlookCard({
           </div>
 
           <div className="flex gap-2">
-            <Stat label="Balance" value={<AnimatedMoney value={outlook.totalBalance} hidden={hidden} short />} />
+            <Stat
+              label="Balance"
+              value={<AnimatedMoney value={outlook.totalBalance} hidden={hidden} short />}
+            />
             <Stat
               label="Interest"
               value={<AnimatedMoney value={outlook.totalInterest} hidden={hidden} short />}

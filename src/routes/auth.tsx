@@ -134,7 +134,8 @@ function AuthPage() {
               </span>
             </h1>
             <p className="mt-6 max-w-lg text-base leading-7 text-white/60">
-              Plan your paydays, eliminate high-interest debt, track every goal, and get direct guidance from one secure dashboard.
+              Plan your paydays, eliminate high-interest debt, track every goal, and get direct
+              guidance from one secure dashboard.
             </p>
           </div>
 
@@ -144,7 +145,10 @@ function AuthPage() {
               { icon: BarChart3, label: "Cash flow", value: "Visible" },
               { icon: TrendingUp, label: "Progress", value: "Measurable" },
             ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.07]">
+              <div
+                key={label}
+                className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.07]"
+              >
                 <Icon className="mb-5 h-5 w-5 text-violet-300" />
                 <div className="text-xs text-white/45">{label}</div>
                 <div className="mt-1 text-sm font-semibold text-white">{value}</div>
@@ -153,8 +157,14 @@ function AuthPage() {
           </div>
 
           <div className="mt-7 flex items-center gap-5 text-xs text-white/45">
-            <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-300" />Private by design</span>
-            <span className="inline-flex items-center gap-2"><LockKeyhole className="h-4 w-4 text-violet-300" />Secure account access</span>
+            <span className="inline-flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-300" />
+              Private by design
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <LockKeyhole className="h-4 w-4 text-violet-300" />
+              Secure account access
+            </span>
           </div>
         </section>
 
@@ -174,12 +184,16 @@ function AuthPage() {
             <div className="rounded-[1.75rem] border border-white/5 bg-[#111020]/90 p-5 sm:p-7">
               <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-medium uppercase tracking-[0.2em] text-violet-300/80">Secure access</div>
+                  <div className="text-xs font-medium uppercase tracking-[0.2em] text-violet-300/80">
+                    Secure access
+                  </div>
                   <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
                     {mode === "signin" ? "Welcome back" : "Create your account"}
                   </h2>
                   <p className="mt-1 text-sm text-white/45">
-                    {mode === "signin" ? "Your financial dashboard is ready." : "Start building your financial plan."}
+                    {mode === "signin"
+                      ? "Your financial dashboard is ready."
+                      : "Start building your financial plan."}
                   </p>
                 </div>
                 <div className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/5">
@@ -222,7 +236,11 @@ function AuthPage() {
                   <div className="flex items-center justify-between">
                     <Label className="text-sm text-white/75">Password</Label>
                     {mode === "signin" && (
-                      <button type="button" onClick={resetPassword} className="text-xs font-medium text-violet-300 transition hover:text-violet-200">
+                      <button
+                        type="button"
+                        onClick={resetPassword}
+                        className="text-xs font-medium text-violet-300 transition hover:text-violet-200"
+                      >
                         Forgot password?
                       </button>
                     )}
@@ -231,7 +249,9 @@ function AuthPage() {
                     <Input
                       type={showPassword ? "text" : "password"}
                       autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                      placeholder={mode === "signin" ? "Enter your password" : "Create a secure password"}
+                      placeholder={
+                        mode === "signin" ? "Enter your password" : "Create a secure password"
+                      }
                       required
                       minLength={6}
                       value={password}
@@ -253,7 +273,8 @@ function AuthPage() {
                   <div className="rounded-xl border border-emerald-400/10 bg-emerald-400/[0.06] p-3">
                     <div className="flex items-start gap-2 text-xs leading-5 text-emerald-100/75">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
-                      Your account is private and your financial data stays protected by your own login.
+                      Your account is private and your financial data stays protected by your own
+                      login.
                     </div>
                   </div>
                 )}
@@ -285,7 +306,8 @@ function AuthPage() {
           </div>
 
           <p className="mt-5 text-center text-xs leading-5 text-white/30">
-            By continuing, you agree to keep your credentials private and use Wealthpilot for your own financial planning.
+            By continuing, you agree to keep your credentials private and use Wealthpilot for your
+            own financial planning.
           </p>
         </section>
       </div>

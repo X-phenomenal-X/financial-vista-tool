@@ -3,6 +3,7 @@
 Build a private, mobile-first personal finance web app for Abhi called “Wealthpilot”. It must be easy to understand, visually clean, and work well on iPhone and desktop.
 
 Core setup
+
 - Email login with cloud backup using Supabase authentication and database.
 - Keep the project private/draft by default.
 - Use in-app reminders and browser notifications. Ask permission before enabling browser notifications.
@@ -11,6 +12,7 @@ Core setup
 
 Seed the app with this current data as of July 23, 2026:
 Income and rent
+
 - Conservative monthly take-home budget: $5,200
 - Average monthly take-home: about $5,850
 - Expected next pay: about $2,800 on July 30, 2026
@@ -20,6 +22,7 @@ Income and rent
 - Treat roommates’ contributions and the full rent payment as transfers, not personal income/expense; only $460 is Abhi’s personal rent expense.
 
 Cash and retirement
+
 - Chequing: $826.43
 - Savings: $3.15
 - Money Master: $100.02
@@ -30,6 +33,7 @@ Cash and retirement
 - Continue existing matched workplace RRSP contribution; do not suggest reducing it while employer matching continues.
 
 Debt
+
 - PC Mastercard: current balance $1,540.17, pending payment -$70, adjusted balance $1,470.17, APR 26.99%, limit $1,500, minimum $33.88, due Aug 4, 2026. Priority 1.
 - RBC Visa: balance $2,530.70, purchase APR 25.99%, cash-advance APR 27.99%, limit $2,500, minimum $132, due Aug 14, 2026, account has a missed payment/past-due issue. Priority 2.
 - Scene+ Visa: balance about $2,928.79, APR 21.99%, limit $3,000, minimum $75.75, due Aug 13, 2026. Priority 3.
@@ -39,6 +43,7 @@ Debt
 - Car loan: balance $24,194.90, APR 3.99%, payment $313.27 biweekly. Keep normal payments; do not prioritize over high-interest credit cards.
 
 Recurring costs and targets
+
 - Car insurance: $465.51/month
 - Phone: $131.24/month
 - Utilities budget: $150/month
@@ -54,10 +59,13 @@ Recurring costs and targets
 - No new Afterpay, Affirm, or credit-card purchases while balances are being cleared.
 
 Existing reminder
+
 - “Verify card payments” scheduled for Aug 3, 2026.
 
 Main screens
+
 1. Dashboard
+
 - KPI cards: total cash, high-interest debt, car loan, workplace retirement, simple net worth.
 - Clear debt priority panel with balances, APRs, utilization, minimums, due dates, and warnings.
 - Next-payday plan that shows a running balance using the seeded data.
@@ -66,6 +74,7 @@ Main screens
 - A simple “What should I do today?” card from the built-in coach.
 
 2. Debt Tracker
+
 - Editable balances, rates, limits, minimums, due dates, status, and payoff priority.
 - Show avalanche payoff plan by default.
 - Show projected payoff month based on user-selected monthly payment.
@@ -73,23 +82,27 @@ Main screens
 - Allow marking a payment as scheduled, pending, or cleared.
 
 3. Budget
+
 - Planned vs actual monthly budget.
 - Separate transfers from expenses so roommates’ rent contributions do not distort income.
 - Categories: rent, car payment, insurance, phone, utilities, gas, groceries, India RD, dining/coffee, subscriptions, shopping/gaming, entertainment, car maintenance, emergency savings, debt payments.
 - Simple over-budget warnings and remaining amount.
 
 4. Transactions
+
 - Manual entry with date, type, category, account, description, amount, need/want, and cleared status.
 - Import review flow from uploaded statement.
 - Prevent double counting of credit-card purchases and credit-card payments.
 
 5. Goals
+
 - Starter emergency fund $1,000, then $3,000, then 3 months of essential expenses.
 - Credit-card debt payoff goal.
 - Future optional FHSA goal, but label it “Not active yet” because Abhi has not opened an FHSA and is unsure about buying a home.
 - Retirement goal showing RRSP + DPSP and employer match.
 
 6. Assistant
+
 - Built-in rules-based coach with chat-style UI.
 - It should answer from app data and produce specific next actions, for example: “Your RBC minimum is due soon,” “PC should be paid first because it has the highest APR,” and “Keep your $500 cash buffer.”
 - Include quick prompts: “What should I pay next?”, “Can I afford this?”, “Where did my money go?”, “What should I do on payday?”, and “How am I doing this month?”
@@ -98,6 +111,7 @@ Main screens
 - Add an “AI Upgrade” settings card marked “Coming later” for a future provider/API connection.
 
 7. Automations
+
 - In-app reminder builder with one-time and recurring reminders.
 - Support due-date reminders, payday check-ins, monthly budget review, and statement-upload reminders.
 - Seed the Aug 3 card-payment verification reminder.
@@ -105,12 +119,14 @@ Main screens
 - Add a recommended recurring payday routine: update balances, confirm minimums, keep $500 buffer, then pay the highest-priority debt.
 
 8. Settings
+
 - Profile, currency CAD, timezone America/Toronto.
 - Notification preferences.
 - Export/import backup and CSV export.
 - Data privacy section explaining that uploaded documents require confirmation before saving extracted data.
 
 Design
+
 - Premium but simple financial dashboard, not a generic banking app.
 - Dark navy, white, and soft green accents.
 - Large readable numbers, strong hierarchy, minimal clutter.
@@ -119,6 +135,7 @@ Design
 - Include realistic empty states, loading states, and validation.
 
 Acceptance requirements
+
 - Fully functional seeded prototype with editable data.
 - Supabase auth and persistence.
 - Browser notification permission UI and in-app reminders.

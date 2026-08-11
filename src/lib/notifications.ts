@@ -7,9 +7,12 @@ export function currentPermission(): NotificationPermission | "unsupported" {
   return Notification.permission;
 }
 
-export async function requestBrowserNotifications(): Promise<NotificationPermission | "unsupported"> {
+export async function requestBrowserNotifications(): Promise<
+  NotificationPermission | "unsupported"
+> {
   if (!browserNotificationsSupported()) return "unsupported";
-  if (Notification.permission === "granted" || Notification.permission === "denied") return Notification.permission;
+  if (Notification.permission === "granted" || Notification.permission === "denied")
+    return Notification.permission;
   return await Notification.requestPermission();
 }
 

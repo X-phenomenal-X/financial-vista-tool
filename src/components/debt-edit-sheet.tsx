@@ -19,7 +19,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const STATUSES = [
   { value: "active", label: "Active" },
@@ -79,7 +85,8 @@ export function DebtEditSheet({
 
   if (!debt) return null;
 
-  const set = (key: keyof FormState, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
+  const set = (key: keyof FormState, value: string) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
 
   const number = (value: string) => {
     const parsed = Number(value);
@@ -98,7 +105,8 @@ export function DebtEditSheet({
 
     if (balance === null || balance < 0) return toast.error("Enter a balance of zero or more.");
     if (apr === null || apr < 0 || apr > 100) return toast.error("Enter an APR between 0 and 100.");
-    if (minimum === null || minimum < 0) return toast.error("Enter a minimum payment of zero or more.");
+    if (minimum === null || minimum < 0)
+      return toast.error("Enter a minimum payment of zero or more.");
     if (pending === null) return toast.error("Enter a valid pending amount.");
     if (priority === null || priority < 1) return toast.error("Priority must be 1 or higher.");
     if (form.credit_limit.trim() !== "" && (limit === null || limit < 0)) {
@@ -121,7 +129,8 @@ export function DebtEditSheet({
         credit_limit: limit,
         minimum_payment: minimum,
         // minimum_payment is no longer the seeded estimate once it's typed in.
-        minimum_estimated: minimum !== Number(debt.minimum_payment) ? false : debt.minimum_estimated,
+        minimum_estimated:
+          minimum !== Number(debt.minimum_payment) ? false : debt.minimum_estimated,
         due_date: form.due_date || null,
         status,
         priority,
@@ -145,7 +154,9 @@ export function DebtEditSheet({
 
     if (wasOutstanding && nowCleared) {
       celebrate();
-      toast.success(`${debt.name} is cleared. That's one gone.`, { icon: <PartyPopper className="h-4 w-4" /> });
+      toast.success(`${debt.name} is cleared. That's one gone.`, {
+        icon: <PartyPopper className="h-4 w-4" />,
+      });
     } else {
       toast.success(`${debt.name} updated`);
     }

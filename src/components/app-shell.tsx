@@ -62,7 +62,9 @@ const NAV_SECTIONS = [
 ] as const;
 
 const ALL_NAV: { to: string; label: string }[] = [
-  ...NAV_SECTIONS.flatMap((section) => section.items.map((item) => ({ to: item.to as string, label: item.label as string }))),
+  ...NAV_SECTIONS.flatMap((section) =>
+    section.items.map((item) => ({ to: item.to as string, label: item.label as string })),
+  ),
   { to: TABS[4].to as string, label: TABS[4].label as string },
 ];
 
@@ -101,7 +103,10 @@ export function AppShell() {
         <div className="pointer-events-none absolute -left-16 -top-20 h-64 w-64 rounded-full bg-primary/15 blur-3xl" />
         <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-        <Link to="/dashboard" className="group relative flex items-center gap-3 rounded-2xl px-2 py-2">
+        <Link
+          to="/dashboard"
+          className="group relative flex items-center gap-3 rounded-2xl px-2 py-2"
+        >
           <div className="relative grid h-12 w-12 place-items-center overflow-hidden rounded-[18px] bg-violet-grad shadow-elevated ring-1 ring-white/15 transition duration-300 group-hover:rotate-[-2deg] group-hover:scale-105">
             <span className="font-display text-2xl text-primary-foreground">W</span>
             <span className="absolute inset-x-2 bottom-1.5 h-px bg-white/45" />
@@ -182,7 +187,9 @@ export function AppShell() {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold">Quick add</span>
-              <span className="block text-[11px] text-muted-foreground">Transaction or balance update</span>
+              <span className="block text-[11px] text-muted-foreground">
+                Transaction or balance update
+              </span>
             </span>
             <Zap className="h-4 w-4 text-accent" />
           </button>
@@ -210,7 +217,9 @@ export function AppShell() {
           </div>
           <div>
             <div className="font-display text-lg leading-none">Wealthpilot</div>
-            <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{currentPage}</div>
+            <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              {currentPage}
+            </div>
           </div>
         </Link>
         <button
@@ -227,7 +236,9 @@ export function AppShell() {
           <div className="mx-auto flex h-[4.6rem] w-full max-w-6xl items-center justify-between px-10">
             <div className="min-w-0">
               <div className="eyebrow">Financial workspace</div>
-              <div className="mt-0.5 truncate font-display text-[1.72rem] leading-none">{currentPage}</div>
+              <div className="mt-0.5 truncate font-display text-[1.72rem] leading-none">
+                {currentPage}
+              </div>
             </div>
             <div className="flex items-center gap-2.5">
               <div className="flex items-center gap-2 rounded-2xl border border-white/[0.065] bg-white/[0.028] px-3 py-2 text-[11px] text-muted-foreground shadow-card">
@@ -274,9 +285,16 @@ export function AppShell() {
                   {selected && (
                     <span className="absolute inset-x-1.5 inset-y-0 rounded-2xl bg-white/[0.06] ring-1 ring-white/[0.06] shadow-card" />
                   )}
-                  <span className={cn("relative grid h-7 w-7 place-items-center rounded-xl transition", selected && "text-accent")}>
+                  <span
+                    className={cn(
+                      "relative grid h-7 w-7 place-items-center rounded-xl transition",
+                      selected && "text-accent",
+                    )}
+                  >
                     <Icon className="h-[19px] w-[19px]" />
-                    {selected && <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-accent shadow-[0_0_9px_var(--accent)]" />}
+                    {selected && (
+                      <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-accent shadow-[0_0_9px_var(--accent)]" />
+                    )}
                   </span>
                   <span className="relative">{label}</span>
                 </Link>

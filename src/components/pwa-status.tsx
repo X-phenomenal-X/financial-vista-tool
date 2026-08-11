@@ -25,7 +25,10 @@ export function PwaStatus({ showInstallPrompt = false }: { showInstallPrompt?: b
   }
 
   const offerInstall =
-    showInstallPrompt && !dismissed && !installed && (installMethod === "prompt" || installMethod === "ios-safari");
+    showInstallPrompt &&
+    !dismissed &&
+    !installed &&
+    (installMethod === "prompt" || installMethod === "ios-safari");
 
   if (online && !updateAvailable && !offerInstall) return null;
 

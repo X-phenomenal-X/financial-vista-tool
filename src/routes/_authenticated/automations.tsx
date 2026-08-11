@@ -22,7 +22,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { currentPermission, notify, requestBrowserNotifications } from "@/lib/notifications";
 import { advanceRecurrence, ruleAlerts } from "@/lib/reminder-rules";
 import type { Reminder } from "@/lib/types";
@@ -31,7 +37,10 @@ export const Route = createFileRoute("/_authenticated/automations")({
   head: () => ({
     meta: [
       { title: "Automations — Wealthpilot" },
-      { name: "description", content: "Smart financial reminders, browser notifications, and notification history." },
+      {
+        name: "description",
+        content: "Smart financial reminders, browser notifications, and notification history.",
+      },
     ],
   }),
   component: AutomationsPage,
@@ -62,7 +71,13 @@ function AutomationsPage() {
   }, []);
 
   const alerts = useMemo(
-    () => ruleAlerts({ debts: ctx.debts, reminders: ctx.reminders, budget: ctx.budget, transactions: ctx.transactions }),
+    () =>
+      ruleAlerts({
+        debts: ctx.debts,
+        reminders: ctx.reminders,
+        budget: ctx.budget,
+        transactions: ctx.transactions,
+      }),
     [ctx.debts, ctx.reminders, ctx.budget, ctx.transactions],
   );
 
@@ -123,7 +138,12 @@ function AutomationsPage() {
   async function complete(reminder: Reminder) {
     const next = advanceRecurrence(reminder.due_at, reminder.recurrence);
     const patch = next
-      ? { due_at: next, completed: false, snoozed_until: null, last_fired_at: new Date().toISOString() }
+      ? {
+          due_at: next,
+          completed: false,
+          snoozed_until: null,
+          last_fired_at: new Date().toISOString(),
+        }
       : { completed: true, snoozed_until: null, last_fired_at: new Date().toISOString() };
     const { error } = await supabase.from("reminders").update(patch).eq("id", reminder.id);
     if (error) return toast.error(error.message);
@@ -132,7 +152,10 @@ function AutomationsPage() {
   }
 
   async function togglePause(reminder: Reminder) {
-    const { error } = await supabase.from("reminders").update({ paused: !reminder.paused }).eq("id", reminder.id);
+    const { error } = await supabase
+      .from("reminders")
+      .update({ paused: !reminder.paused })
+      .eq("id", reminder.id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["reminders", user?.id] });
     toast.success(reminder.paused ? "Reminder resumed" : "Reminder paused");
@@ -142,7 +165,10 @@ function AutomationsPage() {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(9, 0, 0, 0);
-    const { error } = await supabase.from("reminders").update({ snoozed_until: tomorrow.toISOString() }).eq("id", reminder.id);
+    const { error } = await supabase
+      .from("reminders")
+      .update({ snoozed_until: tomorrow.toISOString() })
+      .eq("id", reminder.id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["reminders", user?.id] });
     toast.success("Snoozed until tomorrow morning");
@@ -195,7 +221,10 @@ function AutomationsPage() {
   }
 
   async function markAllRead() {
-    await supabase.from("notification_log").update({ read: true }).eq("user_id", user?.id ?? "");
+    await supabase
+      .from("notification_log")
+      .update({ read: true })
+      .eq("user_id", user?.id ?? "");
     qc.invalidateQueries({ queryKey: ["notification_log", user?.id] });
   }
 
@@ -204,14 +233,22 @@ function AutomationsPage() {
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl">Automations</h1>
-          <p className="text-xs text-muted-foreground">Reminders, smart financial alerts, and notification history.</p>
+          <p className="text-xs text-muted-foreground">
+            Reminders, smart financial alerts, and notification history.
+          </p>
         </div>
-        <div className="rounded-full bg-accent/15 px-3 py-1 text-xs text-accent">{unread} unread</div>
+        <div className="rounded-full bg-accent/15 px-3 py-1 text-xs text-accent">
+          {unread} unread
+        </div>
       </header>
 
       <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex items-center gap-3">
-          {perm === "granted" ? <Bell className="h-5 w-5 text-accent" /> : <BellOff className="h-5 w-5 text-muted-foreground" />}
+          {perm === "granted" ? (
+            <Bell className="h-5 w-5 text-accent" />
+          ) : (
+            <BellOff className="h-5 w-5 text-muted-foreground" />
+          )}
           <div className="flex-1">
             <div className="text-sm font-medium">Browser notifications</div>
             <div className="text-xs text-muted-foreground">
@@ -225,7 +262,9 @@ function AutomationsPage() {
             </div>
           </div>
           {perm !== "granted" && perm !== "denied" && perm !== "unsupported" && (
-            <Button size="sm" onClick={askPerm}>Enable</Button>
+            <Button size="sm" onClick={askPerm}>
+              Enable
+            </Button>
           )}
         </div>
       </section>
@@ -233,25 +272,46 @@ function AutomationsPage() {
       <section className="rounded-2xl border border-border bg-card p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">{editId ? "Edit reminder" : "New reminder"}</h2>
-          {editId && <Button size="sm" variant="ghost" onClick={resetForm}>Cancel edit</Button>}
+          {editId && (
+            <Button size="sm" variant="ghost" onClick={resetForm}>
+              Cancel edit
+            </Button>
+          )}
         </div>
         <div>
           <Label className="text-xs">Title</Label>
-          <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Pay RBC minimum" />
+          <Input
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            placeholder="e.g. Pay RBC minimum"
+          />
         </div>
         <div>
           <Label className="text-xs">Notes</Label>
-          <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Optional detail" />
+          <Input
+            value={form.notes}
+            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            placeholder="Optional detail"
+          />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
             <Label className="text-xs">When</Label>
-            <Input type="datetime-local" value={form.dueAt} onChange={(e) => setForm({ ...form, dueAt: e.target.value })} />
+            <Input
+              type="datetime-local"
+              value={form.dueAt}
+              onChange={(e) => setForm({ ...form, dueAt: e.target.value })}
+            />
           </div>
           <div>
             <Label className="text-xs">Repeat</Label>
-            <Select value={form.recurrence} onValueChange={(value) => setForm({ ...form, recurrence: value })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={form.recurrence}
+              onValueChange={(value) => setForm({ ...form, recurrence: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="once">Once</SelectItem>
                 <SelectItem value="weekly">Weekly</SelectItem>
@@ -264,7 +324,9 @@ function AutomationsPage() {
           <div className="col-span-2">
             <Label className="text-xs">Type</Label>
             <Select value={form.kind} onValueChange={(value) => setForm({ ...form, kind: value })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="custom">Custom</SelectItem>
                 <SelectItem value="debt_due">Debt due date</SelectItem>
@@ -276,7 +338,11 @@ function AutomationsPage() {
           </div>
         </div>
         <label className="flex items-center gap-2 text-xs text-muted-foreground">
-          <input type="checkbox" checked={form.notifyBrowser} onChange={(e) => setForm({ ...form, notifyBrowser: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={form.notifyBrowser}
+            onChange={(e) => setForm({ ...form, notifyBrowser: e.target.checked })}
+          />
           Send a browser notification when permission is available
         </label>
         <Button className="w-full" onClick={saveReminder} disabled={saving || !form.title.trim()}>
@@ -288,17 +354,29 @@ function AutomationsPage() {
         <div className="flex items-center justify-between gap-2">
           <div>
             <h2 className="text-sm font-semibold">Smart alerts</h2>
-            <p className="text-xs text-muted-foreground">Generated from live due dates, balances, utilization, and budget progress.</p>
+            <p className="text-xs text-muted-foreground">
+              Generated from live due dates, balances, utilization, and budget progress.
+            </p>
           </div>
-          <Button size="sm" variant="secondary" onClick={syncSmartAlerts} disabled={syncing || !alerts.length}>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={syncSmartAlerts}
+            disabled={syncing || !alerts.length}
+          >
             <RefreshCw className={`mr-1 h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} /> Refresh
           </Button>
         </div>
         <div className="mt-3 space-y-2">
           {alerts.slice(0, 8).map((alert) => (
-            <div key={alert.id} className={`rounded-xl border px-3 py-3 ${alert.tone === "danger" ? "border-destructive/40 bg-destructive/10" : alert.tone === "warning" ? "border-warning/40 bg-warning/10" : "border-border bg-secondary/30"}`}>
+            <div
+              key={alert.id}
+              className={`rounded-xl border px-3 py-3 ${alert.tone === "danger" ? "border-destructive/40 bg-destructive/10" : alert.tone === "warning" ? "border-warning/40 bg-warning/10" : "border-border bg-secondary/30"}`}
+            >
               <div className="flex items-start gap-2">
-                <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${alert.tone === "danger" ? "text-destructive" : alert.tone === "warning" ? "text-warning" : "text-accent"}`} />
+                <AlertTriangle
+                  className={`mt-0.5 h-4 w-4 shrink-0 ${alert.tone === "danger" ? "text-destructive" : alert.tone === "warning" ? "text-warning" : "text-accent"}`}
+                />
                 <div>
                   <div className="text-sm">{alert.title}</div>
                   <div className="mt-0.5 text-xs text-muted-foreground">{alert.body}</div>
@@ -306,29 +384,52 @@ function AutomationsPage() {
               </div>
             </div>
           ))}
-          {!alerts.length && <div className="rounded-xl bg-success/10 px-3 py-4 text-center text-xs text-success">No smart alerts right now.</div>}
+          {!alerts.length && (
+            <div className="rounded-xl bg-success/10 px-3 py-4 text-center text-xs text-success">
+              No smart alerts right now.
+            </div>
+          )}
         </div>
       </section>
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold">Scheduled reminders</h2>
         {activeReminders.map((reminder) => (
-          <ReminderRow key={reminder.id} reminder={reminder} onComplete={complete} onPause={togglePause} onSnooze={snooze} onEdit={startEdit} onDelete={remove} />
+          <ReminderRow
+            key={reminder.id}
+            reminder={reminder}
+            onComplete={complete}
+            onPause={togglePause}
+            onSnooze={snooze}
+            onEdit={startEdit}
+            onDelete={remove}
+          />
         ))}
         {!activeReminders.length && (
-          <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">No active reminders.</div>
+          <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            No active reminders.
+          </div>
         )}
       </section>
 
       {!!completedReminders.length && (
         <details className="rounded-2xl border border-border bg-card p-4">
-          <summary className="cursor-pointer text-sm font-semibold">Completed ({completedReminders.length})</summary>
+          <summary className="cursor-pointer text-sm font-semibold">
+            Completed ({completedReminders.length})
+          </summary>
           <div className="mt-3 space-y-2">
             {completedReminders.map((reminder) => (
-              <div key={reminder.id} className="flex items-center gap-3 rounded-xl bg-secondary/30 p-3 opacity-65">
+              <div
+                key={reminder.id}
+                className="flex items-center gap-3 rounded-xl bg-secondary/30 p-3 opacity-65"
+              >
                 <Check className="h-4 w-4 text-success" />
-                <div className="min-w-0 flex-1"><div className="truncate text-sm">{reminder.title}</div></div>
-                <Button size="icon" variant="ghost" onClick={() => remove(reminder)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm">{reminder.title}</div>
+                </div>
+                <Button size="icon" variant="ghost" onClick={() => remove(reminder)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
               </div>
             ))}
           </div>
@@ -341,25 +442,43 @@ function AutomationsPage() {
             <Inbox className="h-4 w-4 text-accent" />
             <h2 className="text-sm font-semibold">Notification history</h2>
           </div>
-          {!!unread && <Button size="sm" variant="ghost" onClick={markAllRead}><CheckCheck className="mr-1 h-3.5 w-3.5" /> Mark all read</Button>}
+          {!!unread && (
+            <Button size="sm" variant="ghost" onClick={markAllRead}>
+              <CheckCheck className="mr-1 h-3.5 w-3.5" /> Mark all read
+            </Button>
+          )}
         </div>
         <div className="mt-3 space-y-2">
           {historyLoading && <div className="text-xs text-muted-foreground">Loading history…</div>}
           {history.slice(0, 30).map((item) => (
-            <button key={item.id} onClick={() => markRead(item.id)} className={`w-full rounded-xl border p-3 text-left ${item.read ? "border-border bg-secondary/20 opacity-65" : "border-accent/30 bg-accent/5"}`}>
+            <button
+              key={item.id}
+              onClick={() => markRead(item.id)}
+              className={`w-full rounded-xl border p-3 text-left ${item.read ? "border-border bg-secondary/20 opacity-65" : "border-accent/30 bg-accent/5"}`}
+            >
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="text-sm">{item.title}</div>
-                  {item.body && <div className="mt-0.5 text-xs text-muted-foreground">{item.body}</div>}
+                  {item.body && (
+                    <div className="mt-0.5 text-xs text-muted-foreground">{item.body}</div>
+                  )}
                 </div>
                 {!item.read && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent" />}
               </div>
               <div className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-                {new Date(item.created_at).toLocaleString("en-CA", { dateStyle: "medium", timeStyle: "short" })} · {item.channel}
+                {new Date(item.created_at).toLocaleString("en-CA", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}{" "}
+                · {item.channel}
               </div>
             </button>
           ))}
-          {!historyLoading && !history.length && <div className="rounded-xl bg-secondary/30 px-3 py-4 text-center text-xs text-muted-foreground">Notification history will appear here.</div>}
+          {!historyLoading && !history.length && (
+            <div className="rounded-xl bg-secondary/30 px-3 py-4 text-center text-xs text-muted-foreground">
+              Notification history will appear here.
+            </div>
+          )}
         </div>
       </section>
     </div>
@@ -383,31 +502,66 @@ function ReminderRow({
 }) {
   const snoozed = reminder.snoozed_until && new Date(reminder.snoozed_until) > new Date();
   return (
-    <div className={`rounded-2xl border border-border bg-card p-4 ${reminder.paused ? "opacity-60" : ""}`}>
+    <div
+      className={`rounded-2xl border border-border bg-card p-4 ${reminder.paused ? "opacity-60" : ""}`}
+    >
       <div className="flex items-start gap-3">
-        <button onClick={() => onComplete(reminder)} className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-success hover:text-success" aria-label={`Complete ${reminder.title}`}>
+        <button
+          onClick={() => onComplete(reminder)}
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-success hover:text-success"
+          aria-label={`Complete ${reminder.title}`}
+        >
           <Check className="h-4 w-4" />
         </button>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <div className="truncate text-sm">{reminder.title}</div>
-            {reminder.paused && <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase text-muted-foreground">Paused</span>}
-            {snoozed && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] uppercase text-warning">Snoozed</span>}
+            {reminder.paused && (
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase text-muted-foreground">
+                Paused
+              </span>
+            )}
+            {snoozed && (
+              <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] uppercase text-warning">
+                Snoozed
+              </span>
+            )}
           </div>
           <div className="text-xs text-muted-foreground">
-            {new Date(reminder.due_at).toLocaleString("en-CA", { dateStyle: "medium", timeStyle: "short" })} · {reminder.recurrence}
+            {new Date(reminder.due_at).toLocaleString("en-CA", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}{" "}
+            · {reminder.recurrence}
           </div>
-          {reminder.notes && <div className="mt-1 text-xs text-muted-foreground">{reminder.notes}</div>}
+          {reminder.notes && (
+            <div className="mt-1 text-xs text-muted-foreground">{reminder.notes}</div>
+          )}
         </div>
       </div>
       <div className="mt-3 flex flex-wrap gap-1 border-t border-border pt-3">
         <Button size="sm" variant="ghost" onClick={() => onPause(reminder)}>
-          {reminder.paused ? <Play className="mr-1 h-3.5 w-3.5" /> : <Pause className="mr-1 h-3.5 w-3.5" />}
+          {reminder.paused ? (
+            <Play className="mr-1 h-3.5 w-3.5" />
+          ) : (
+            <Pause className="mr-1 h-3.5 w-3.5" />
+          )}
           {reminder.paused ? "Resume" : "Pause"}
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => onSnooze(reminder)}><Clock3 className="mr-1 h-3.5 w-3.5" /> Snooze</Button>
-        <Button size="sm" variant="ghost" onClick={() => onEdit(reminder)}><Pencil className="mr-1 h-3.5 w-3.5" /> Edit</Button>
-        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => onDelete(reminder)}><Trash2 className="mr-1 h-3.5 w-3.5" /> Delete</Button>
+        <Button size="sm" variant="ghost" onClick={() => onSnooze(reminder)}>
+          <Clock3 className="mr-1 h-3.5 w-3.5" /> Snooze
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => onEdit(reminder)}>
+          <Pencil className="mr-1 h-3.5 w-3.5" /> Edit
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-destructive"
+          onClick={() => onDelete(reminder)}
+        >
+          <Trash2 className="mr-1 h-3.5 w-3.5" /> Delete
+        </Button>
       </div>
     </div>
   );

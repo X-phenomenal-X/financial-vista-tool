@@ -315,15 +315,7 @@ function SummaryTile({ label, value, tone }: { label: string; value: number; ton
   );
 }
 
-function Detail({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Tag;
-  label: string;
-  value: string;
-}) {
+function Detail({ icon: Icon, label, value }: { icon: typeof Tag; label: string; value: string }) {
   return (
     <div className="min-w-0">
       <dt className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">

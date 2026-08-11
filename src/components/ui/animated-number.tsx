@@ -12,7 +12,10 @@ function useCountUp(value: number, duration: number, round = false) {
   const [display, setDisplay] = useState(value);
 
   useEffect(() => {
-    if (typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      typeof window === "undefined" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       setDisplay(value);
       return;
     }
@@ -91,7 +94,10 @@ export function ProgressRing({
   const [drawn, setDrawn] = useState(0);
 
   useEffect(() => {
-    if (typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      typeof window === "undefined" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       setDrawn(clamped);
       return;
     }
@@ -105,7 +111,13 @@ export function ProgressRing({
 
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90" role="img" aria-label={label ?? `${Math.round(clamped * 100)}%`}>
+      <svg
+        width={size}
+        height={size}
+        className="-rotate-90"
+        role="img"
+        aria-label={label ?? `${Math.round(clamped * 100)}%`}
+      >
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -138,8 +150,14 @@ export function ProgressRing({
       </svg>
       {(label || sublabel) && (
         <div className="absolute inset-0 grid place-items-center text-center leading-none">
-          {label && <span className="numeric-display text-sm font-semibold text-foreground">{label}</span>}
-          {sublabel && <span className="mt-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">{sublabel}</span>}
+          {label && (
+            <span className="numeric-display text-sm font-semibold text-foreground">{label}</span>
+          )}
+          {sublabel && (
+            <span className="mt-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
+              {sublabel}
+            </span>
+          )}
         </div>
       )}
     </div>

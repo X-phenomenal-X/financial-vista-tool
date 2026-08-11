@@ -4,7 +4,15 @@
 export type DocKind = "bank" | "credit_card" | "pay_stub" | "retirement";
 
 export interface ParsedItem {
-  item_type: "transaction" | "balance" | "minimum_payment" | "due_date" | "apr" | "credit_limit" | "deposit" | "withdrawal";
+  item_type:
+    | "transaction"
+    | "balance"
+    | "minimum_payment"
+    | "due_date"
+    | "apr"
+    | "credit_limit"
+    | "deposit"
+    | "withdrawal";
   occurred_on: string | null;
   description: string;
   amount: number;
@@ -25,7 +33,18 @@ export interface ParsedStatement {
 }
 
 const MONTHS: Record<string, number> = {
-  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+  jan: 0,
+  feb: 1,
+  mar: 2,
+  apr: 3,
+  may: 4,
+  jun: 5,
+  jul: 6,
+  aug: 7,
+  sep: 8,
+  oct: 9,
+  nov: 10,
+  dec: 11,
 };
 
 function iso(y: number, m: number, d: number) {
@@ -43,7 +62,8 @@ export function parseDate(input: string, fallbackYear = new Date().getFullYear()
   if (m) {
     const yr = +m[3] < 100 ? 2000 + +m[3] : +m[3];
     // Canadian statements are usually MM/DD/YYYY; fall back to DD/MM when month > 12.
-    const a = +m[1], b = +m[2];
+    const a = +m[1],
+      b = +m[2];
     return a > 12 ? iso(yr, b - 1, a) : iso(yr, a - 1, b);
   }
   m = s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2})(?:,?\s*(\d{4}))?$/);
@@ -78,16 +98,23 @@ export function splitCsvLine(line: string, delim: string): string[] {
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
     if (ch === '"') {
-      if (q && line[i + 1] === '"') { cur += '"'; i++; } else q = !q;
-    } else if (ch === delim && !q) { out.push(cur); cur = ""; }
-    else cur += ch;
+      if (q && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else q = !q;
+    } else if (ch === delim && !q) {
+      out.push(cur);
+      cur = "";
+    } else cur += ch;
   }
   out.push(cur);
   return out.map((c) => c.trim().replace(/^"|"$/g, ""));
 }
 
 function detectDelim(sample: string) {
-  const counts = [",", ";", "\t", "|"].map((d) => [d, (sample.match(new RegExp(`\\${d}`, "g")) || []).length] as const);
+  const counts = [",", ";", "\t", "|"].map(
+    (d) => [d, (sample.match(new RegExp(`\\${d}`, "g")) || []).length] as const,
+  );
   counts.sort((a, b) => b[1] - a[1]);
   return counts[0][1] > 0 ? counts[0][0] : ",";
 }
@@ -95,13 +122,19 @@ function detectDelim(sample: string) {
 function guessCategory(desc: string): string | null {
   const d = desc.toLowerCase();
   const map: [RegExp, string][] = [
-    [/tim hortons|starbucks|coffee|restaurant|mcdonald|uber eats|doordash|skip ?the ?dishes|pizza|cafe/, "Dining & coffee"],
+    [
+      /tim hortons|starbucks|coffee|restaurant|mcdonald|uber eats|doordash|skip ?the ?dishes|pizza|cafe/,
+      "Dining & coffee",
+    ],
     [/loblaw|no ?frills|superstore|food ?basics|sobeys|metro|walmart|costco|grocer/, "Groceries"],
     [/petro|esso|shell|husky|ultramar|gas ?bar|circle k|fuel/, "Gas"],
     [/insurance|intact|aviva|belair|desjardins ins/, "Car insurance"],
     [/rogers|bell|telus|fido|koodo|freedom|phone|mobile/, "Phone"],
     [/hydro|enbridge|water|utility|utilities/, "Utilities"],
-    [/netflix|spotify|prime|disney|apple\.com\/bill|subscription|patreon|crunchyroll/, "Subscriptions"],
+    [
+      /netflix|spotify|prime|disney|apple\.com\/bill|subscription|patreon|crunchyroll/,
+      "Subscriptions",
+    ],
     [/rent|landlord/, "Rent"],
     [/payment ?- ?thank you|payment received|pmt received|bill payment/, "Debt payments"],
     [/payroll|direct deposit|deposit|salary|pay ?cheque|paycheque/, "Income"],
@@ -119,7 +152,8 @@ function classify(amount: number, desc: string, docKind: DocKind): ParsedItem["t
     if (/payment|thank you/.test(d)) return "debt_payment";
     return "expense";
   }
-  if (/payment ?- ?thank you|credit card payment|visa payment|mastercard payment/.test(d)) return "debt_payment";
+  if (/payment ?- ?thank you|credit card payment|visa payment|mastercard payment/.test(d))
+    return "debt_payment";
   return amount > 0 ? "income" : "expense";
 }
 
@@ -132,7 +166,13 @@ export function parseCsv(text: string, docKind: DocKind): ParsedStatement {
   let headerIdx = -1;
   for (let i = 0; i < Math.min(rows.length, 10); i++) {
     const low = rows[i].map((c) => c.toLowerCase());
-    if (low.some((c) => /date/.test(c)) && low.some((c) => /amount|debit|credit|withdraw|deposit|value/.test(c))) { headerIdx = i; break; }
+    if (
+      low.some((c) => /date/.test(c)) &&
+      low.some((c) => /amount|debit|credit|withdraw|deposit|value/.test(c))
+    ) {
+      headerIdx = i;
+      break;
+    }
   }
 
   const header = headerIdx >= 0 ? rows[headerIdx].map((c) => c.toLowerCase()) : [];
@@ -161,7 +201,9 @@ export function parseCsv(text: string, docKind: DocKind): ParsedStatement {
       const nums = r.map((c, i) => [i, num(c)] as const).filter(([, n]) => n !== null);
       if (!nums.length) continue;
       amount = nums[nums.length - 1][1]!;
-      desc = r.filter((c, i) => i !== dIdx && num(c) === null).sort((a, b) => b.length - a.length)[0] ?? "";
+      desc =
+        r.filter((c, i) => i !== dIdx && num(c) === null).sort((a, b) => b.length - a.length)[0] ??
+        "";
     } else {
       if (amtCol >= 0) amount = num(r[amtCol]);
       if (amount === null && (debitCol >= 0 || creditCol >= 0)) {
@@ -178,7 +220,8 @@ export function parseCsv(text: string, docKind: DocKind): ParsedStatement {
     if (!desc) confidence = Math.min(confidence, 0.5);
 
     // Credit-card statements list purchases as positive charges.
-    if (docKind === "credit_card" && amount > 0 && !/payment|thank you|refund|credit/i.test(desc)) amount = -amount;
+    if (docKind === "credit_card" && amount > 0 && !/payment|thank you|refund|credit/i.test(desc))
+      amount = -amount;
 
     const txType = classify(amount, desc, docKind);
     items.push({
@@ -193,7 +236,10 @@ export function parseCsv(text: string, docKind: DocKind): ParsedStatement {
     });
   }
 
-  const dates = items.map((i) => i.occurred_on).filter(Boolean).sort() as string[];
+  const dates = items
+    .map((i) => i.occurred_on)
+    .filter(Boolean)
+    .sort() as string[];
   return {
     docKind,
     statementStart: dates[0] ?? null,
@@ -206,35 +252,99 @@ export function parseCsv(text: string, docKind: DocKind): ParsedStatement {
 
 function summarize(items: ParsedItem[]): ParsedStatement["detected"] {
   const deposits = items.filter((i) => i.tx_type === "income").reduce((s, i) => s + i.amount, 0);
-  const withdrawals = items.filter((i) => i.tx_type === "expense").reduce((s, i) => s + i.amount, 0);
+  const withdrawals = items
+    .filter((i) => i.tx_type === "expense")
+    .reduce((s, i) => s + i.amount, 0);
   const out: ParsedStatement["detected"] = {};
   if (deposits) out.deposits = { value: deposits, confidence: 0.8, raw: "sum of detected credits" };
-  if (withdrawals) out.withdrawals = { value: withdrawals, confidence: 0.8, raw: "sum of detected debits" };
+  if (withdrawals)
+    out.withdrawals = { value: withdrawals, confidence: 0.8, raw: "sum of detected debits" };
   return out;
 }
 
 /* ------------------------------ Plain text/PDF ---------------------------- */
 
 const FIELD_PATTERNS: { key: string; re: RegExp; kind: "money" | "percent" | "date" }[] = [
-  { key: "new_balance", re: /(?:new balance|closing balance|statement balance|balance owing|total balance)[^\d\-$]{0,20}\(?\$?\s*(-?[\d,]+\.\d{2})/i, kind: "money" },
-  { key: "previous_balance", re: /previous balance[^\d\-$]{0,20}\(?\$?\s*(-?[\d,]+\.\d{2})/i, kind: "money" },
-  { key: "account_balance", re: /(?:current balance|available balance|ending balance|account balance)[^\d\-$]{0,20}\(?\$?\s*(-?[\d,]+\.\d{2})/i, kind: "money" },
-  { key: "minimum_payment", re: /(?:minimum payment|minimum amount due|min\.? payment)[^\d$]{0,20}\$?\s*([\d,]+\.\d{2})/i, kind: "money" },
-  { key: "credit_limit", re: /(?:credit limit|total credit limit)[^\d$]{0,20}\$?\s*([\d,]+(?:\.\d{2})?)/i, kind: "money" },
-  { key: "available_credit", re: /available credit[^\d$]{0,20}\$?\s*([\d,]+(?:\.\d{2})?)/i, kind: "money" },
-  { key: "net_pay", re: /(?:net pay|net deposit|total net pay)[^\d$]{0,20}\$?\s*([\d,]+\.\d{2})/i, kind: "money" },
-  { key: "gross_pay", re: /(?:gross pay|gross earnings|total earnings)[^\d$]{0,20}\$?\s*([\d,]+\.\d{2})/i, kind: "money" },
-  { key: "employer_contribution", re: /(?:employer (?:match|contribution)|dpsp)[^\d$]{0,25}\$?\s*([\d,]+\.\d{2})/i, kind: "money" },
-  { key: "plan_value", re: /(?:total plan value|market value|plan balance|total value)[^\d$]{0,20}\$?\s*([\d,]+\.\d{2})/i, kind: "money" },
-  { key: "purchase_apr", re: /(?:purchase(?:s)? (?:annual interest rate|apr|rate))[^\d]{0,20}([\d]+\.\d{1,2})\s*%/i, kind: "percent" },
+  {
+    key: "new_balance",
+    re: /(?:new balance|closing balance|statement balance|balance owing|total balance)[^\d\-$]{0,20}\(?\$?\s*(-?[\d,]+\.\d{2})/i,
+    kind: "money",
+  },
+  {
+    key: "previous_balance",
+    re: /previous balance[^\d\-$]{0,20}\(?\$?\s*(-?[\d,]+\.\d{2})/i,
+    kind: "money",
+  },
+  {
+    key: "account_balance",
+    re: /(?:current balance|available balance|ending balance|account balance)[^\d\-$]{0,20}\(?\$?\s*(-?[\d,]+\.\d{2})/i,
+    kind: "money",
+  },
+  {
+    key: "minimum_payment",
+    re: /(?:minimum payment|minimum amount due|min\.? payment)[^\d$]{0,20}\$?\s*([\d,]+\.\d{2})/i,
+    kind: "money",
+  },
+  {
+    key: "credit_limit",
+    re: /(?:credit limit|total credit limit)[^\d$]{0,20}\$?\s*([\d,]+(?:\.\d{2})?)/i,
+    kind: "money",
+  },
+  {
+    key: "available_credit",
+    re: /available credit[^\d$]{0,20}\$?\s*([\d,]+(?:\.\d{2})?)/i,
+    kind: "money",
+  },
+  {
+    key: "net_pay",
+    re: /(?:net pay|net deposit|total net pay)[^\d$]{0,20}\$?\s*([\d,]+\.\d{2})/i,
+    kind: "money",
+  },
+  {
+    key: "gross_pay",
+    re: /(?:gross pay|gross earnings|total earnings)[^\d$]{0,20}\$?\s*([\d,]+\.\d{2})/i,
+    kind: "money",
+  },
+  {
+    key: "employer_contribution",
+    re: /(?:employer (?:match|contribution)|dpsp)[^\d$]{0,25}\$?\s*([\d,]+\.\d{2})/i,
+    kind: "money",
+  },
+  {
+    key: "plan_value",
+    re: /(?:total plan value|market value|plan balance|total value)[^\d$]{0,20}\$?\s*([\d,]+\.\d{2})/i,
+    kind: "money",
+  },
+  {
+    key: "purchase_apr",
+    re: /(?:purchase(?:s)? (?:annual interest rate|apr|rate))[^\d]{0,20}([\d]+\.\d{1,2})\s*%/i,
+    kind: "percent",
+  },
   { key: "cash_advance_apr", re: /cash advance[^\d]{0,25}([\d]+\.\d{1,2})\s*%/i, kind: "percent" },
-  { key: "annual_interest_rate", re: /annual interest rate[^\d]{0,20}([\d]+\.\d{1,2})\s*%/i, kind: "percent" },
-  { key: "due_date", re: /(?:payment due date|due date|payment due)[^\dA-Za-z]{0,10}([A-Za-z]{3,9}\.?\s+\d{1,2},?\s*\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4})/i, kind: "date" },
-  { key: "statement_date", re: /(?:statement date|closing date|as of)[^\dA-Za-z]{0,10}([A-Za-z]{3,9}\.?\s+\d{1,2},?\s*\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4})/i, kind: "date" },
-  { key: "pay_date", re: /(?:pay date|pay period ending|period ending)[^\dA-Za-z]{0,10}([A-Za-z]{3,9}\.?\s+\d{1,2},?\s*\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4})/i, kind: "date" },
+  {
+    key: "annual_interest_rate",
+    re: /annual interest rate[^\d]{0,20}([\d]+\.\d{1,2})\s*%/i,
+    kind: "percent",
+  },
+  {
+    key: "due_date",
+    re: /(?:payment due date|due date|payment due)[^\dA-Za-z]{0,10}([A-Za-z]{3,9}\.?\s+\d{1,2},?\s*\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4})/i,
+    kind: "date",
+  },
+  {
+    key: "statement_date",
+    re: /(?:statement date|closing date|as of)[^\dA-Za-z]{0,10}([A-Za-z]{3,9}\.?\s+\d{1,2},?\s*\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4})/i,
+    kind: "date",
+  },
+  {
+    key: "pay_date",
+    re: /(?:pay date|pay period ending|period ending)[^\dA-Za-z]{0,10}([A-Za-z]{3,9}\.?\s+\d{1,2},?\s*\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4})/i,
+    kind: "date",
+  },
 ];
 
-const TX_LINE = /^\s*([A-Za-z]{3,9}\.?\s+\d{1,2}(?:,?\s*\d{4})?|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)\s+(.{3,80}?)\s+\(?\$?(-?[\d,]+\.\d{2})\)?\s*(CR|DR)?\s*$/i;
+const TX_LINE =
+  /^\s*([A-Za-z]{3,9}\.?\s+\d{1,2}(?:,?\s*\d{4})?|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)\s+(.{3,80}?)\s+\(?\$?(-?[\d,]+\.\d{2})\)?\s*(CR|DR)?\s*$/i;
 
 export function parseText(text: string, docKind: DocKind): ParsedStatement {
   const detected: ParsedStatement["detected"] = {};
@@ -246,7 +356,12 @@ export function parseText(text: string, docKind: DocKind): ParsedStatement {
       if (d) detected[f.key] = { value: d, confidence: 0.85, raw: m[0].trim() };
     } else {
       const v = num(m[1]);
-      if (v !== null) detected[f.key] = { value: v, confidence: f.kind === "percent" ? 0.85 : 0.8, raw: m[0].trim() };
+      if (v !== null)
+        detected[f.key] = {
+          value: v,
+          confidence: f.kind === "percent" ? 0.85 : 0.8,
+          raw: m[0].trim(),
+        };
     }
   }
 
@@ -268,7 +383,8 @@ export function parseText(text: string, docKind: DocKind): ParsedStatement {
     if (/balance|total|subtotal|interest rate|credit limit|minimum/i.test(desc)) continue;
     const isCredit = (m[4] || "").toUpperCase() === "CR";
     let signed = raw;
-    if (docKind === "credit_card") signed = isCredit || /payment|thank you/i.test(desc) ? Math.abs(raw) : -Math.abs(raw);
+    if (docKind === "credit_card")
+      signed = isCredit || /payment|thank you/i.test(desc) ? Math.abs(raw) : -Math.abs(raw);
     const txType = classify(signed, desc, docKind);
     items.push({
       item_type: "transaction",
@@ -282,16 +398,25 @@ export function parseText(text: string, docKind: DocKind): ParsedStatement {
     });
   }
 
-  const dates = items.map((i) => i.occurred_on).filter(Boolean).sort() as string[];
+  const dates = items
+    .map((i) => i.occurred_on)
+    .filter(Boolean)
+    .sort() as string[];
   Object.assign(detected, summarize(items));
   return {
     docKind,
     statementStart: dates[0] ?? null,
-    statementEnd: (typeof detected.statement_date?.value === "string" ? (detected.statement_date.value as string) : dates[dates.length - 1]) ?? null,
+    statementEnd:
+      (typeof detected.statement_date?.value === "string"
+        ? (detected.statement_date.value as string)
+        : dates[dates.length - 1]) ?? null,
     detected,
     items,
     textLength: text.length,
-    warning: items.length === 0 ? "No transaction lines were recognised — check the detected summary fields below or add entries manually." : undefined,
+    warning:
+      items.length === 0
+        ? "No transaction lines were recognised — check the detected summary fields below or add entries manually."
+        : undefined,
   };
 }
 
@@ -318,7 +443,14 @@ export async function extractPdfText(file: File): Promise<string> {
     }
     const lines = [...rows.entries()]
       .sort((a, b) => b[0] - a[0])
-      .map(([, cells]) => cells.sort((a, b) => a.x - b.x).map((c) => c.s).join(" ").replace(/\s{2,}/g, "  ").trim())
+      .map(([, cells]) =>
+        cells
+          .sort((a, b) => a.x - b.x)
+          .map((c) => c.s)
+          .join(" ")
+          .replace(/\s{2,}/g, "  ")
+          .trim(),
+      )
       .filter(Boolean);
     pages.push(lines.join("\n"));
   }
@@ -333,12 +465,24 @@ export function guessDocKind(fileName: string, text: string): DocKind {
   return "bank";
 }
 
-export async function parseStatementFile(file: File, forcedKind?: DocKind): Promise<ParsedStatement> {
+export async function parseStatementFile(
+  file: File,
+  forcedKind?: DocKind,
+): Promise<ParsedStatement> {
   const name = file.name.toLowerCase();
   if (name.endsWith(".pdf")) {
     const text = await extractPdfText(file);
     if (text.replace(/\s/g, "").length < 40) {
-      return { docKind: forcedKind ?? "bank", statementStart: null, statementEnd: null, detected: {}, items: [], textLength: text.length, warning: "This PDF has no selectable text (it's likely a scan). Export a CSV from your bank instead, or add the values manually." };
+      return {
+        docKind: forcedKind ?? "bank",
+        statementStart: null,
+        statementEnd: null,
+        detected: {},
+        items: [],
+        textLength: text.length,
+        warning:
+          "This PDF has no selectable text (it's likely a scan). Export a CSV from your bank instead, or add the values manually.",
+      };
     }
     return parseText(text, forcedKind ?? guessDocKind(file.name, text));
   }
@@ -346,17 +490,31 @@ export async function parseStatementFile(file: File, forcedKind?: DocKind): Prom
   const kind = forcedKind ?? guessDocKind(file.name, text);
   if (name.endsWith(".csv") || name.endsWith(".tsv")) return parseCsv(text, kind);
   // .txt — try CSV first when it looks delimited, else text.
-  const csvish = text.split(/\r?\n/).slice(0, 5).every((l) => (l.match(/[,;\t]/g) || []).length >= 2);
+  const csvish = text
+    .split(/\r?\n/)
+    .slice(0, 5)
+    .every((l) => (l.match(/[,;\t]/g) || []).length >= 2);
   return csvish ? parseCsv(text, kind) : parseText(text, kind);
 }
 
 /* ------------------------------ Duplicates -------------------------------- */
 
 export function normalizeDesc(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-export function findDuplicate<T extends { id: string; occurred_on: string; amount: number | string; description: string | null }>(
+export function findDuplicate<
+  T extends {
+    id: string;
+    occurred_on: string;
+    amount: number | string;
+    description: string | null;
+  },
+>(
   item: { occurred_on: string | null; amount: number; description: string },
   existing: T[],
 ): T | null {
@@ -364,7 +522,9 @@ export function findDuplicate<T extends { id: string; occurred_on: string; amoun
   for (const t of existing) {
     if (Math.abs(Number(t.amount) - item.amount) > 0.011) continue;
     if (item.occurred_on) {
-      const diff = Math.abs(new Date(t.occurred_on).getTime() - new Date(item.occurred_on).getTime()) / 86400000;
+      const diff =
+        Math.abs(new Date(t.occurred_on).getTime() - new Date(item.occurred_on).getTime()) /
+        86400000;
       if (diff > 3) continue;
     }
     const other = normalizeDesc(t.description ?? "");

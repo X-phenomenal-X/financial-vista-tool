@@ -2,7 +2,7 @@ export function money(
   n: number | string | null | undefined,
   opts: { sign?: boolean; short?: boolean; whole?: boolean } = {},
 ) {
-  const v = typeof n === "string" ? parseFloat(n) : n ?? 0;
+  const v = typeof n === "string" ? parseFloat(n) : (n ?? 0);
   if (opts.short && Math.abs(v) >= 10000) {
     return `${v < 0 ? "−$" : "$"}${(Math.abs(v) / 1000).toFixed(1)}k`;
   }
@@ -57,7 +57,11 @@ export function dateShort(d: string | Date) {
 }
 
 export function dateFull(d: string | Date) {
-  return parseLocalDate(d).toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" });
+  return parseLocalDate(d).toLocaleDateString("en-CA", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 /**
@@ -78,11 +82,14 @@ export function daysInMonthLeft() {
 
 export function greetingFor(name = "Abhi") {
   const h = new Date().getHours();
-  const g = h < 5 ? "Good night" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  const g =
+    h < 5 ? "Good night" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
   return `${g}, ${name}`;
 }
 
-export function groupByDate<T extends { occurred_on: string }>(rows: T[]): { key: string; label: string; items: T[] }[] {
+export function groupByDate<T extends { occurred_on: string }>(
+  rows: T[],
+): { key: string; label: string; items: T[] }[] {
   const map = new Map<string, T[]>();
   rows.forEach((r) => {
     const k = r.occurred_on;

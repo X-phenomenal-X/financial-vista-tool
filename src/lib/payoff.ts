@@ -24,7 +24,10 @@ function monthLabel(d: Date) {
 
 export function cardDebts(debts: Debt[]) {
   return debts.filter(
-    (d) => d.status !== "cleared" && d.kind !== "car_loan" && Number(d.balance) + Number(d.pending || 0) > 0,
+    (d) =>
+      d.status !== "cleared" &&
+      d.kind !== "car_loan" &&
+      Number(d.balance) + Number(d.pending || 0) > 0,
   );
 }
 
@@ -71,7 +74,8 @@ export function simulate(
     }
     totalInterest += interestThisMonth;
 
-    let budget = monthlyPayment + lumpSums.filter((l) => l.monthIndex === m).reduce((s, l) => s + l.amount, 0);
+    let budget =
+      monthlyPayment + lumpSums.filter((l) => l.monthIndex === m).reduce((s, l) => s + l.amount, 0);
     const paid: { debtId: string; amount: number }[] = [];
     const cleared: string[] = [];
 
@@ -119,7 +123,10 @@ export function simulate(
     strategy,
     months,
     totalInterest,
-    debtFreeMonth: working.every((d) => d.balance <= 0.01) && months.length ? months[months.length - 1].month : null,
+    debtFreeMonth:
+      working.every((d) => d.balance <= 0.01) && months.length
+        ? months[months.length - 1].month
+        : null,
     order: working
       .slice()
       .sort((a, b) => {

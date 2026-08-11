@@ -62,11 +62,15 @@ const CASH_KINDS = new Set(["chequing", "savings", "money_master"]);
 const RETIREMENT_KINDS = new Set(["rrsp", "dpsp"]);
 
 export function totalCash(ctx: CoachContext) {
-  return ctx.accounts.filter((a) => CASH_KINDS.has(a.kind)).reduce((sum, account) => sum + Number(account.balance), 0);
+  return ctx.accounts
+    .filter((a) => CASH_KINDS.has(a.kind))
+    .reduce((sum, account) => sum + Number(account.balance), 0);
 }
 
 export function totalRetirement(ctx: CoachContext) {
-  return ctx.accounts.filter((a) => RETIREMENT_KINDS.has(a.kind)).reduce((sum, account) => sum + Number(account.balance), 0);
+  return ctx.accounts
+    .filter((a) => RETIREMENT_KINDS.has(a.kind))
+    .reduce((sum, account) => sum + Number(account.balance), 0);
 }
 
 export function highInterestDebt(ctx: CoachContext) {
@@ -76,12 +80,17 @@ export function highInterestDebt(ctx: CoachContext) {
 }
 
 export function carLoanBalance(ctx: CoachContext) {
-  return ctx.debts.filter((d) => d.kind === "car_loan").reduce((sum, debt) => sum + Number(debt.balance), 0);
+  return ctx.debts
+    .filter((d) => d.kind === "car_loan")
+    .reduce((sum, debt) => sum + Number(debt.balance), 0);
 }
 
 export function netWorth(ctx: CoachContext) {
   const assets = ctx.accounts.reduce((sum, account) => sum + Number(account.balance), 0);
-  const liabilities = ctx.debts.reduce((sum, debt) => sum + Number(debt.balance) + Number(debt.pending || 0), 0);
+  const liabilities = ctx.debts.reduce(
+    (sum, debt) => sum + Number(debt.balance) + Number(debt.pending || 0),
+    0,
+  );
   return assets - liabilities;
 }
 
@@ -110,9 +119,11 @@ export function priorityOrder(ctx: CoachContext) {
 }
 
 function activePaydayPlan(ctx: CoachContext) {
-  return [...(ctx.paydayPlans ?? [])]
-    .filter((plan) => plan.status === "active")
-    .sort((a, b) => new Date(b.pay_date).getTime() - new Date(a.pay_date).getTime())[0] ?? null;
+  return (
+    [...(ctx.paydayPlans ?? [])]
+      .filter((plan) => plan.status === "active")
+      .sort((a, b) => new Date(b.pay_date).getTime() - new Date(a.pay_date).getTime())[0] ?? null
+  );
 }
 
 function nextPayday(ctx: CoachContext) {
@@ -142,17 +153,32 @@ function pendingImports(ctx: CoachContext) {
   return (ctx.statementImports ?? []).filter((item) => item.status === "pending");
 }
 
-export function urgentActions(ctx: CoachContext): { text: string; tone: "danger" | "warning" | "info" }[] {
+export function urgentActions(
+  ctx: CoachContext,
+): { text: string; tone: "danger" | "warning" | "info" }[] {
   const actions: { text: string; tone: "danger" | "warning" | "info" }[] = [];
 
   ctx.debts
     .filter((debt) => debt.status === "past_due")
-    .forEach((debt) => actions.push({ text: `${debt.name}: past due — pay minimum ${money(debt.minimum_payment)} today`, tone: "danger" }));
+    .forEach((debt) =>
+      actions.push({
+        text: `${debt.name}: past due — pay minimum ${money(debt.minimum_payment)} today`,
+        tone: "danger",
+      }),
+    );
 
   ctx.debts.forEach((debt) => {
     const used = utilization(debt);
-    if (used >= 1) actions.push({ text: `${debt.name} is ${(used * 100).toFixed(0)}% of its limit`, tone: "danger" });
-    else if (used >= 0.8) actions.push({ text: `${debt.name} is at ${(used * 100).toFixed(0)}% utilization`, tone: "warning" });
+    if (used >= 1)
+      actions.push({
+        text: `${debt.name} is ${(used * 100).toFixed(0)}% of its limit`,
+        tone: "danger",
+      });
+    else if (used >= 0.8)
+      actions.push({
+        text: `${debt.name} is at ${(used * 100).toFixed(0)}% utilization`,
+        tone: "warning",
+      });
   });
 
   ctx.debts
@@ -168,7 +194,11 @@ export function urgentActions(ctx: CoachContext): { text: string; tone: "danger"
     });
 
   const imports = pendingImports(ctx);
-  if (imports.length) actions.push({ text: `${imports.length} statement import${imports.length === 1 ? " needs" : "s need"} review`, tone: "info" });
+  if (imports.length)
+    actions.push({
+      text: `${imports.length} statement import${imports.length === 1 ? " needs" : "s need"} review`,
+      tone: "info",
+    });
 
   return actions.slice(0, 3);
 }
@@ -210,10 +240,14 @@ export function paydayPlan(ctx: CoachContext, paycheck = 2800): string[] {
 
   const order = priorityOrder(ctx).filter((debt) => debt.kind !== "car_loan");
   const target = order[0];
-  const extraTarget = saved ? Number(saved.extra_debt_payment || 0) : Math.min(CC_TARGET, Math.max(0, running));
+  const extraTarget = saved
+    ? Number(saved.extra_debt_payment || 0)
+    : Math.min(CC_TARGET, Math.max(0, running));
   const extra = Math.min(Math.max(0, running), extraTarget);
   if (target && extra > 0) {
-    lines.push(`Send ${money(extra)} extra to ${target.name} (${Number(target.apr).toFixed(2)}% APR).`);
+    lines.push(
+      `Send ${money(extra)} extra to ${target.name} (${Number(target.apr).toFixed(2)}% APR).`,
+    );
     running -= extra;
   }
 
@@ -253,19 +287,30 @@ function budgetProgress(ctx: CoachContext) {
 }
 
 function matchCategory(ctx: CoachContext, raw: string) {
-  const normalized = raw.toLowerCase().replace(/[^a-z0-9 &]/g, " ").replace(/\s+/g, " ").trim();
+  const normalized = raw
+    .toLowerCase()
+    .replace(/[^a-z0-9 &]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   if (!normalized) return null;
   const rows = budgetProgress(ctx);
   return (
     rows.find((row) => normalized.includes(row.name.toLowerCase())) ??
     rows.find((row) => row.name.toLowerCase().includes(normalized)) ??
-    rows.find((row) => row.name.toLowerCase().split(/[ &/]+/).some((word) => word.length > 3 && normalized.includes(word))) ??
+    rows.find((row) =>
+      row.name
+        .toLowerCase()
+        .split(/[ &/]+/)
+        .some((word) => word.length > 3 && normalized.includes(word)),
+    ) ??
     null
   );
 }
 
 export function whereDidMoneyGo(ctx: CoachContext): string {
-  const rows = budgetProgress(ctx).sort((a, b) => b.actual - a.actual).slice(0, 5);
+  const rows = budgetProgress(ctx)
+    .sort((a, b) => b.actual - a.actual)
+    .slice(0, 5);
   if (!rows.some((row) => row.actual > 0)) {
     return "No spending is logged this month. Next action: add or import your recent transactions.";
   }
@@ -278,7 +323,10 @@ export function whereDidMoneyGo(ctx: CoachContext): string {
     : `Next action: review ${rows[0].name}, your largest category at ${money(rows[0].actual)}.`;
 
   return `This month's top spending:\n${rows
-    .map((row) => `• ${row.name}: ${money(row.actual)}${row.planned > 0 ? ` of ${money(row.planned)}` : ""}`)
+    .map(
+      (row) =>
+        `• ${row.name}: ${money(row.actual)}${row.planned > 0 ? ` of ${money(row.planned)}` : ""}`,
+    )
     .join("\n")}\n\n${action}`;
 }
 
@@ -289,7 +337,10 @@ export function changesSinceLastPayday(ctx: CoachContext): string {
     .filter((date) => startOfDay(date) <= today)
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
   const incomeDates = ctx.transactions
-    .filter((transaction) => transaction.type === "income" && startOfDay(transaction.occurred_on) <= today)
+    .filter(
+      (transaction) =>
+        transaction.type === "income" && startOfDay(transaction.occurred_on) <= today,
+    )
     .map((transaction) => transaction.occurred_on)
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
   const since = planDates[0] ?? incomeDates[0];
@@ -298,10 +349,18 @@ export function changesSinceLastPayday(ctx: CoachContext): string {
     return "I do not have a saved payday plan or income transaction to use as a starting point. Next action: save your next payday plan or log your pay deposit.";
   }
 
-  const transactions = ctx.transactions.filter((transaction) => parseLocalDate(transaction.occurred_on) >= parseLocalDate(since));
-  const income = transactions.filter((transaction) => transaction.type === "income").reduce((sum, item) => sum + Number(item.amount), 0);
-  const expenses = transactions.filter((transaction) => transaction.type === "expense").reduce((sum, item) => sum + spendAmount(item), 0);
-  const debtPayments = transactions.filter((transaction) => transaction.type === "debt_payment").reduce((sum, item) => sum + spendAmount(item), 0);
+  const transactions = ctx.transactions.filter(
+    (transaction) => parseLocalDate(transaction.occurred_on) >= parseLocalDate(since),
+  );
+  const income = transactions
+    .filter((transaction) => transaction.type === "income")
+    .reduce((sum, item) => sum + Number(item.amount), 0);
+  const expenses = transactions
+    .filter((transaction) => transaction.type === "expense")
+    .reduce((sum, item) => sum + spendAmount(item), 0);
+  const debtPayments = transactions
+    .filter((transaction) => transaction.type === "debt_payment")
+    .reduce((sum, item) => sum + spendAmount(item), 0);
   const importCount = pendingImports(ctx).length;
 
   return [
@@ -327,22 +386,31 @@ export function howAmIDoing(ctx: CoachContext): string {
     `Card minimums due before ${payday ? dateShort(payday) : "the next two weeks"}: ${money(minimums)}.`,
   ];
 
-  if (over.length) parts.push(`Over budget: ${over.map((item) => `${item.name} (+${money(item.actual - item.planned)})`).join(", ")}.`);
+  if (over.length)
+    parts.push(
+      `Over budget: ${over.map((item) => `${item.name} (+${money(item.actual - item.planned)})`).join(", ")}.`,
+    );
   else parts.push("No tracked category is over budget.");
 
   const imports = pendingImports(ctx).length;
-  if (imports) parts.push(`${imports} statement import${imports === 1 ? " is" : "s are"} waiting for review.`);
+  if (imports)
+    parts.push(`${imports} statement import${imports === 1 ? " is" : "s are"} waiting for review.`);
   parts.push(`Next action: ${todayAction(ctx).replace(/^.*Next action:\s*/i, "")}`);
   return parts.join("\n");
 }
 
 export function canIAfford(ctx: CoachContext, amount: number, categoryRaw?: string): string {
-  if (!amount || amount <= 0) return 'Tell me the amount and category, for example: "Can I afford $80 for dining?"';
-  if (!categoryRaw?.trim()) return 'I need the category too, for example: "Can I afford $80 for dining?"';
+  if (!amount || amount <= 0)
+    return 'Tell me the amount and category, for example: "Can I afford $80 for dining?"';
+  if (!categoryRaw?.trim())
+    return 'I need the category too, for example: "Can I afford $80 for dining?"';
 
   const category = matchCategory(ctx, categoryRaw);
   if (!category) {
-    const available = budgetProgress(ctx).map((row) => row.name).slice(0, 8).join(", ");
+    const available = budgetProgress(ctx)
+      .map((row) => row.name)
+      .slice(0, 8)
+      .join(", ");
     return `I could not match “${categoryRaw.trim()}” to a budget category. Available categories include ${available || "none yet"}. Next action: choose a category or add it to your budget.`;
   }
 
@@ -365,11 +433,17 @@ export function canIAfford(ctx: CoachContext, amount: number, categoryRaw?: stri
 
   if (!affordable) {
     const shortage = Math.max(0, protectedCash - cashAfter);
-    if (shortage > 0) lines.push(`This would leave you ${money(shortage)} short of protected cash.`);
-    if (categoryAfter < 0) lines.push(`This would put the category ${money(-categoryAfter)} over budget.`);
-    lines.push("Next action: skip it or reduce the amount until both protected cash and the category budget stay positive.");
+    if (shortage > 0)
+      lines.push(`This would leave you ${money(shortage)} short of protected cash.`);
+    if (categoryAfter < 0)
+      lines.push(`This would put the category ${money(-categoryAfter)} over budget.`);
+    lines.push(
+      "Next action: skip it or reduce the amount until both protected cash and the category budget stay positive.",
+    );
   } else {
-    lines.push(`Next action: it fits your current plan; pay with available cash and log it immediately.`);
+    lines.push(
+      `Next action: it fits your current plan; pay with available cash and log it immediately.`,
+    );
   }
 
   return lines.join("\n");
@@ -377,7 +451,8 @@ export function canIAfford(ctx: CoachContext, amount: number, categoryRaw?: stri
 
 export function nextToPay(ctx: CoachContext): string {
   const order = priorityOrder(ctx).filter((debt) => debt.kind !== "car_loan");
-  if (!order.length) return "No high-interest balance is active. Next action: direct surplus to your emergency fund.";
+  if (!order.length)
+    return "No high-interest balance is active. Next action: direct surplus to your emergency fund.";
   const debt = order[0];
   const balance = Number(debt.balance) + Number(debt.pending || 0);
 
@@ -390,15 +465,18 @@ export function nextToPay(ctx: CoachContext): string {
 
 export function coachAnswer(prompt: string, ctx: CoachContext): string {
   const normalized = prompt.toLowerCase().trim();
-  if (!normalized) return "Ask a money question or choose a quick prompt. Next action: start with what you need to decide today.";
+  if (!normalized)
+    return "Ask a money question or choose a quick prompt. Next action: start with what you need to decide today.";
 
-  if (/changed.*(payday|pay day)|since.*(payday|pay day)|last payday/.test(normalized)) return changesSinceLastPayday(ctx);
+  if (/changed.*(payday|pay day)|since.*(payday|pay day)|last payday/.test(normalized))
+    return changesSinceLastPayday(ctx);
   if (/what.*today|do today|today.*action/.test(normalized)) return todayAction(ctx);
   if (/pay.*(next|first)|what.*pay|which.*debt/.test(normalized)) return nextToPay(ctx);
 
   if (/afford/.test(normalized)) {
     const amountMatch = normalized.match(/\$?([\d,]+(?:\.\d+)?)/);
-    if (!amountMatch) return 'Tell me the amount and category, for example: "Can I afford $80 for dining?"';
+    if (!amountMatch)
+      return 'Tell me the amount and category, for example: "Can I afford $80 for dining?"';
     const amount = Number(amountMatch[1].replace(/,/g, ""));
     const category = normalized
       .replace(amountMatch[0], " ")

@@ -10,7 +10,14 @@ export async function logAudit(
 ) {
   if (!userId) return;
   try {
-    await supabase.from("audit_log").insert({ user_id: userId, entity, action, summary, details: details as never, entity_id: entityId ?? null });
+    await supabase.from("audit_log").insert({
+      user_id: userId,
+      entity,
+      action,
+      summary,
+      details: details as never,
+      entity_id: entityId ?? null,
+    });
   } catch {
     /* auditing must never block the user action */
   }

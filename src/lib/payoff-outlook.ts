@@ -31,7 +31,10 @@ export function payoffOutlook(
   strategy: Strategy = "avalanche",
 ): PayoffOutlook {
   const active = cardDebts(debts);
-  const totalBalance = active.reduce((sum, d) => sum + Number(d.balance) + Number(d.pending || 0), 0);
+  const totalBalance = active.reduce(
+    (sum, d) => sum + Number(d.balance) + Number(d.pending || 0),
+    0,
+  );
   const minimums = minimumsTotal(debts);
 
   if (!active.length) {
